@@ -2,7 +2,7 @@
 
 A relationship-manager view of company payment networks, built on **synthetic** Qatar Islamic Bank (QIB) transaction data. Every transaction has a QIB account on one side; counterparties are real Qatar companies, government bodies and charities banking at QIB or other Qatar banks. All amounts and transactions are made up.
 
-**Live dashboard:** https://atulchandorkar.github.io/corporate-network-intelligence/
+**Live dashboard:** https://atulchandorkar.github.io/network-dashboard/ (published from a separate repository that holds only the built page)
 
 ![RM brief](05_visualizations/screenshots/explorer_rm_brief.png)
 
@@ -27,7 +27,7 @@ Insights and recommendations are rule-based (thresholds and templates over the f
 | `03_code/config/neo4j/docker-compose.yml` | Local Neo4j |
 | `03_code/src/app/` | Plotly Dash version of the dashboard (reads Neo4j, or the JSON exports when no database is set) |
 | `05_visualizations/explorer_src/` | Source of the static dashboard: `template.html` + `build.py` → `docs/index.html` |
-| `docs/index.html` | The published dashboard (GitHub Pages), one self-contained HTML file |
+| `docs/index.html` | The built dashboard, one self-contained HTML file (copied to the `network-dashboard` repository for publishing) |
 | `08_documentation/` | Data dictionary and graph-model/dashboard methodology |
 
 ## Run it
