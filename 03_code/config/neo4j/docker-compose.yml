@@ -1,0 +1,15 @@
+# Local Neo4j for the Qatar payment network.
+# Start:  docker compose -f 03_code/config/neo4j/docker-compose.yml up -d
+# Browser: http://localhost:7474  (user neo4j, password from NEO4J_PASSWORD in your shell or .env)
+services:
+  neo4j:
+    image: neo4j:5.26-community
+    container_name: qatar-payment-graph
+    ports: ["7474:7474", "7687:7687"]
+    environment:
+      NEO4J_AUTH: neo4j/${NEO4J_PASSWORD:-change-me-please}
+      NEO4J_server_memory_heap_max__size: 1G
+      NEO4J_PLUGINS: '["apoc", "graph-data-science"]'   # optional; remove if your network blocks plugin downloads
+    volumes:
+      - ./data:/data
+      - ../../../12_logs/neo4j:/logs

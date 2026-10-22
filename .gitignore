@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.venv/
+.env
+*.pkl
+.DS_Store
+03_code/src/app/assets/logo.png
