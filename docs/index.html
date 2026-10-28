@@ -122,7 +122,9 @@ tbody tr:hover td { background: var(--accent-soft); }
 .blogo { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
 .blogo img { height: 26px; width: auto; max-width: 120px; object-fit: contain; background: #fff; border-radius: 3px; padding: 1px 3px; box-shadow: 0 0 0 1px var(--line); }
 .chk .blogo img { height: 22px; max-width: 110px; }
-.shape { display: inline-block; width: 14px; text-align: center; color: var(--muted); font-size: 12px; }
+.shape { display: inline-block; width: 16px; text-align: center; color: var(--muted); }
+.ticon { width: 14px; height: 14px; vertical-align: -2px; color: var(--muted); flex: none; }
+td .ticon { margin-right: 5px; }
 .selrow .blogo img { height: 30px; max-width: 150px; }
 .cochips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .cochips button { font: inherit; font-size: 12px; background: var(--panel); color: var(--accent); border: 1px solid var(--accent); border-radius: 999px; padding: 3px 10px; cursor: pointer; }
@@ -389,11 +391,21 @@ const LOGOS = {"Qatar Islamic Bank": "data:image/png;base64,iVBORw0KGgoAAAANSUhE
   const QIBN = 'Qatar Islamic Bank';
   const ROUTES = [['ON_US', 'Both at QIB', '--onus'], ['QIB_TO_OTHER', 'QIB to other bank', '--out'], ['OTHER_TO_QIB', 'Other bank to QIB', '--in']];
   const RLABEL = Object.fromEntries(ROUTES.map((r) => [r[0], r[1]]));
-  const TYPES = [['Company (GRE)', '--gre'], ['Company', '--company'], ['Government', '--gov'], ['Charity', '--charity'], ['Individual', '--indiv']];
+  const TYPES = [['Company', '--company'], ['Government', '--gov'], ['Charity', '--charity'], ['Individual', '--indiv']];
   const tcol = (t) => css((TYPES.find((x) => x[0] === t) || [0, '--indiv'])[1]);
   const qcol = (e) => css(e.qib ? '--qibc' : '--nonqib');
-  const SHAPES = { 'Company': ['ellipse', '●'], 'Company (GRE)': ['diamond', '◆'], 'Government': ['hexagon', '⬢'], 'Charity': ['round-triangle', '▲'], 'Individual': ['round-pentagon', '⬟'] };
-  const shapeOf = (t) => (SHAPES[t] || SHAPES.Company)[0];
+  // one icon per counterparty type (Material icon paths, 24x24)
+  const ICONS = {
+    Company: 'M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z',
+    Government: 'M4 10v7h3v-7H4zm6 0v7h3v-7h-3zM2 22h19v-3H2v3zm14-12v7h3v-7h-3zm-4.5-9L2 6v2h19V6l-9.5-5z',
+    Charity: 'M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z',
+    Individual: 'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z',
+  };
+  const iconPath = (t) => ICONS[t] || ICONS.Company;
+  const iconUri = (t) => 'data:image/svg+xml;utf8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="#ffffff" d="${iconPath(t)}"/></svg>`);
+  const iconEl = (t) => { const ns = 'http://www.w3.org/2000/svg', svg = document.createElementNS(ns, 'svg'); svg.setAttribute('viewBox', '0 0 24 24'); svg.setAttribute('class', 'ticon'); svg.setAttribute('aria-hidden', 'true');
+    const pa = document.createElementNS(ns, 'path'); pa.setAttribute('d', iconPath(t)); pa.setAttribute('fill', 'currentColor'); svg.append(pa); return svg; };
+  const shapeOf = () => 'ellipse';
   const logoUri = (b) => LOGOS[b] || '';
   // a bank shown by its logo alone; the name stays available as the tooltip and for screen readers
   function bankCell(b, label) { const s = document.createElement('span'); s.className = 'blogo'; const name = label || (b === QIBN ? 'Qatar Islamic Bank' : b);
@@ -407,6 +419,7 @@ const LOGOS = {"Qatar Islamic Bank": "data:image/png;base64,iVBORw0KGgoAAAANSUhE
   const sum = (arr, f = (x) => x.v) => arr.reduce((a, x) => a + f(x), 0);
   const group = (arr, key) => { const m = new Map(); arr.forEach((x) => { const k = key(x); if (!m.has(k)) m.set(k, []); m.get(k).push(x); }); return m; };
 
+  DATA.entities.forEach((e) => { if (e.type === 'Company (GRE)') { e.gre = true; e.type = 'Company'; } });
   const ENTS = new Map(DATA.entities.map((e) => [e.id, e]));
   const FLOWS = DATA.flows.map((f) => ({ ...f, m: String(f.m) }));
   const MONTHS = [...new Set(FLOWS.map((f) => f.m))].sort();
@@ -422,8 +435,8 @@ const LOGOS = {"Qatar Islamic Bank": "data:image/png;base64,iVBORw0KGgoAAAANSUhE
 
   // ---------- controls ----------
   // every entity in the data, grouped: QIB customers first, then those banking elsewhere
-  const CGROUPS = [['QIB customers: companies and GREs', (e) => e.qib && /Company/.test(e.type)], ['QIB customers: government and charities', (e) => e.qib && /Government|Charity/.test(e.type)],
-    ['QIB customers: individuals', (e) => e.qib && e.type === 'Individual'], ['Other banks: companies and GREs', (e) => !e.qib && /Company/.test(e.type)],
+  const CGROUPS = [['QIB customers: companies', (e) => e.qib && /Company/.test(e.type)], ['QIB customers: government and charities', (e) => e.qib && /Government|Charity/.test(e.type)],
+    ['QIB customers: individuals', (e) => e.qib && e.type === 'Individual'], ['Other banks: companies', (e) => !e.qib && /Company/.test(e.type)],
     ['Other banks: government and charities', (e) => !e.qib && /Government|Charity/.test(e.type)], ['Other banks: individuals', (e) => !e.qib && e.type === 'Individual']];
   $('company').replaceChildren(...CGROUPS.map(([label, pred]) => { const g = document.createElement('optgroup'); g.label = label;
     g.append(...DATA.entities.filter(pred).sort((a, b) => a.name.localeCompare(b.name)).map((e) => new Option(e.qib ? e.name : `${e.name} (${bankShort(e.bank)})`, e.id))); return g; }));
@@ -460,7 +473,7 @@ const LOGOS = {"Qatar Islamic Bank": "data:image/png;base64,iVBORw0KGgoAAAANSUhE
   };
   checks($('routes'), ROUTES, S.routes);
   checks($('types'), TYPES.map(([t]) => [t, t]), S.types, null);
-  $('types').querySelectorAll('label').forEach((l) => { const g = document.createElement('span'); g.className = 'shape'; g.textContent = SHAPES[l.querySelector('input').value][1]; l.insertBefore(g, l.lastChild); });
+  $('types').querySelectorAll('label').forEach((l) => { const g = document.createElement('span'); g.className = 'shape'; g.append(iconEl(l.querySelector('input').value)); l.insertBefore(g, l.lastChild); });
   checks($('banks'), BANKS.map((b) => [b, b === QIBN ? 'QIB (both sides)' : bankShort(b)]), S.banks, null);
   $('banks').querySelectorAll('label').forEach((l) => { const b = l.querySelector('input').value; l.lastChild.replaceWith(bankCell(b, b === QIBN ? 'QIB (both sides)' : bankShort(b))); });
   const setAllBanks = (on) => { S.banks = new Set(on ? BANKS : []); $('banks').querySelectorAll('input').forEach((i) => { i.checked = on; }); checks; render(); };
@@ -469,7 +482,7 @@ const LOGOS = {"Qatar Islamic Bank": "data:image/png;base64,iVBORw0KGgoAAAANSUhE
   // rebind bank checkboxes to the live set after "all"/"none"
   $('banks').addEventListener('change', (ev) => { const i = ev.target; if (i.type === 'checkbox') { i.checked ? S.banks.add(i.value) : S.banks.delete(i.value); } }, true);
   $('legend').replaceChildren(...[['--qibc', 'QIB customer'], ['--nonqib', 'Banks elsewhere (not a QIB customer)']].map(([c, t]) => { const s = document.createElement('span'); const i = document.createElement('i'); i.style.background = `var(${c})`; s.append(i, t); return s; }),
-    ...TYPES.map(([t]) => { const s = document.createElement('span'); s.textContent = `${SHAPES[t][1]} ${t}`; return s; }),
+    ...TYPES.map(([t]) => { const s = document.createElement('span'); s.append(iconEl(t), ' ' + t); return s; }),
     ...['--in', '--out'].map((c) => { const s = document.createElement('span'); const b = document.createElement('b'); b.style.background = `var(${c})`; const t = document.createElement('span'); t.className = 'lg-' + c.slice(2); s.append(b, t); return s; }));
   ['ind-gre', 'ind-indiv', 'ind-top'].forEach((id) => $(id).addEventListener('change', render));
   $('topn').addEventListener('input', () => { $('topn-v').textContent = $('topn').value; });
@@ -539,7 +552,7 @@ const LOGOS = {"Qatar Islamic Bank": "data:image/png;base64,iVBORw0KGgoAAAANSUhE
     const { e, months, cust, supp, vin, vout, mIn, mOut, inF, outF, outOther, inOther, selfF, recent, before, win, changes, rank, l1, l2 } = B;
     const period = months.length ? `${mLabel(months[0])} to ${mLabel(months.at(-1))}` : 'the period';
     const nm = e.name, ins = [], recs = [];
-    const govIn = sum(inF.filter((f) => isGov(f.s))), greIn = sum(inF.filter((f) => ENTS.get(f.s).type === 'Company (GRE)'));
+    const govIn = sum(inF.filter((f) => isGov(f.s))), greIn = sum(inF.filter((f) => ENTS.get(f.s).gre));
     // headline
     let head = vin + vout === 0 ? `${nm} has no payments in ${period} with these filters.`
       : `In ${period}, ${nm} received ${QAR(vin)} from ${cust.length} payers and paid ${QAR(vout)} to ${supp.length} suppliers, a net ${vin >= vout ? 'inflow' : 'outflow'} of ${QAR(Math.abs(vin - vout))}.`;
@@ -703,7 +716,7 @@ const LOGOS = {"Qatar Islamic Bank": "data:image/png;base64,iVBORw0KGgoAAAANSUhE
   }
   function ringPos(nodes) {
     const pos = { [S.center]: { x: 0, y: 0 } };
-    const order = ['Government', 'Company (GRE)', 'Company', 'Charity', 'Individual'];
+    const order = ['Government', 'Company', 'Charity', 'Individual'];
     const l1 = nodes.filter((n) => n.lv === 1).sort((a, b) => order.indexOf(a.type) - order.indexOf(b.type) || (b.vin + b.vout) - (a.vin + a.vout));
     if (!l1.length) return pos;
     const r1 = Math.max(300, 34 * l1.length / Math.PI * 1.1), ang = new Map();
@@ -719,6 +732,7 @@ const LOGOS = {"Qatar Islamic Bank": "data:image/png;base64,iVBORw0KGgoAAAANSUhE
   const baseStyle = () => [
     { selector: 'node', style: { 'background-color': 'data(color)', width: 'data(size)', height: 'data(size)', label: 'data(label)', 'font-size': 11, 'font-family': css('--font-body'), color: css('--ink'), 'text-valign': 'bottom', 'text-margin-y': 4, 'text-outline-color': css('--bg'), 'text-outline-width': 2, 'border-width': 1, 'border-color': css('--bg') } },
     { selector: 'node[shape]', style: { shape: 'data(shape)' } },
+    { selector: 'node[icon]', style: { 'background-image': 'data(icon)', 'background-fit': 'none', 'background-width': '62%', 'background-height': '62%', 'background-clip': 'none' } },
     { selector: 'node[lv = 0]', style: { 'font-size': 15, 'font-weight': 600, 'border-width': 6, 'border-color': css('--ring'), 'z-index': 10 } },
     { selector: 'node[lv = 2]', style: { 'font-size': 9, opacity: 0.88 } },
     { selector: 'node[?bank]', style: { shape: 'round-rectangle', 'font-size': 12, 'font-weight': 600 } },
@@ -752,7 +766,7 @@ const LOGOS = {"Qatar Islamic Bank": "data:image/png;base64,iVBORw0KGgoAAAANSUhE
     cy.on('viewport', () => { tip.hidden = true; });
     cys[key] = cy; return cy;
   }
-  const size = (v, max) => 16 + 50 * Math.sqrt(max ? v / max : 0);
+  const size = (v, max) => 28 + 44 * Math.sqrt(max ? v / max : 0);
   const PAY = (n) => N.format(n) + (n === 1 ? ' payment' : ' payments');
   const avg = (v, n) => (n ? QAR(v / n) : '–');
   const bankOfE = (e) => (e.qib ? 'QIB customer' : 'Banks with ' + bankShort(e.bank));
@@ -773,7 +787,7 @@ const LOGOS = {"Qatar Islamic Bank": "data:image/png;base64,iVBORw0KGgoAAAANSUhE
           ...(n.lv === 2 ? [['Linked through', ENTS.get(n.parent)?.name ?? '–']] : []),
           ...(n.lv === 1 ? [[`Paid to ${short(ce.name)}`, toC ? `${QAR(toC.v)} · ${PAY(toC.n)}` : '–'], [`Received from ${short(ce.name)}`, fromC ? `${QAR(fromC.v)} · ${PAY(fromC.n)}` : '–']] : []),
           ['Money in (in view)', `${QAR(n.vin)} · ${PAY(n.nin)}`], ['Money out (in view)', `${QAR(n.vout)} · ${PAY(n.nout)}`]]; })(),
-      color: qcol(n), shape: shapeOf(n.type), size: size(n.vin + n.vout, vmax) * (n.lv === 0 ? 1.4 : 1), label: n.lv < 2 || (n.vin + n.vout) > vmax * 0.03 ? short(n.name) : '' } }));
+      color: qcol(n), shape: shapeOf(n.type), icon: iconUri(n.type), size: size(n.vin + n.vout, vmax) * (n.lv === 0 ? 1.4 : 1), label: n.lv < 2 || (n.vin + n.vout) > vmax * 0.03 ? short(n.name) : '' } }));
     P.filter((p) => lv.has(p.s) && lv.has(p.t)).forEach((p) => els.push({ data: { id: p.s + '>' + p.t, source: p.s, target: p.t, color: css(p.t === c ? '--in' : '--out'), arrow: 'triangle', w: 1 + 9 * Math.sqrt(p.v / emax), tier: (p.s === c || p.t === c) ? 1 : 2, v: p.v, n: p.n, route: p.route,
       tip: [`${ENTS.get(p.s).name} → ${ENTS.get(p.t).name}`, [p.t === c ? `Credit to ${short(ce.name)}` : `Debit from ${short(ce.name)}`, QAR(p.v)], ['Payments', N.format(p.n)], ['Average payment', avg(p.v, p.n)], ['Main route', RLABEL[p.route]],
         ...Object.entries(p.by).filter(([r]) => r !== p.route).map(([r, v]) => [RLABEL[r], QAR(v)])] } }));
@@ -834,6 +848,7 @@ const LOGOS = {"Qatar Islamic Bank": "data:image/png;base64,iVBORw0KGgoAAAANSUhE
       cols.forEach(([k, , fmt, bk]) => { const td = tr.insertCell(); if (fmt) td.className = 'num';
         if (k === 'lv') { const s = document.createElement('span'); s.className = 'lvl' + (r.lv === 2 ? ' l2' : ''); s.textContent = r.lv === 1 ? '1st' : '2nd'; td.append(s); }
         else if (bk) td.append(bankCell(r[bk], r[k]));
+        else if (k === 'type' && r[k]) td.append(iconEl(r[k]), r[k]);
         else td.textContent = fmt ? (r[k] ? fmt(r[k]) : '–') : r[k]; }); });
   }
 
@@ -866,7 +881,7 @@ const LOGOS = {"Qatar Islamic Bank": "data:image/png;base64,iVBORw0KGgoAAAANSUhE
     const coTot = new Map(); pr.forEach((p) => coTot.set(p.c, (coTot.get(p.c) || 0) + tot(p)));
     const bTot = new Map(); pr.forEach((p) => bTot.set(p.b, (bTot.get(p.b) || 0) + tot(p)));
     const cmax = Math.max(1, ...coTot.values()), bmax = Math.max(1, ...bTot.values());
-    const els = [...coTot.keys()].map((id) => ({ data: { id, label: short(ENTS.get(id).name), tip: ptip(ENTS.get(id).name, pr.filter((p) => p.c === id)), color: qcol(ENTS.get(id)), shape: shapeOf(ENTS.get(id).type), size: size(coTot.get(id), cmax), qib: true, lv: 1 } }))
+    const els = [...coTot.keys()].map((id) => ({ data: { id, label: short(ENTS.get(id).name), tip: ptip(ENTS.get(id).name, pr.filter((p) => p.c === id)), color: qcol(ENTS.get(id)), shape: shapeOf(ENTS.get(id).type), icon: iconUri(ENTS.get(id).type), size: size(coTot.get(id), cmax), qib: true, lv: 1 } }))
       .concat([...bTot.keys()].map((b) => ({ data: bankNode(b, 24 + 40 * Math.sqrt(bTot.get(b) / bmax), b === QIBN ? css('--qibc') : css('--muted'), { id: 'bank:' + b, tip: ptip(b === QIBN ? 'Its other QIB account' : b, pr.filter((p) => p.b === b)) }) })))
       .concat(pr.map((p) => ({ data: { id: p.c + '>' + p.b, source: p.c, target: 'bank:' + p.b, arrow: 'none', w: 1 + 9 * Math.sqrt(tot(p) / emax), tier: 1,
         tip: [...ptip(`${short(ENTS.get(p.c).name)} ↔ ${bankShort(p.b)}`, [p]), ['Months active', N.format(p.months)], ['Average transfer', avg(tot(p), p.n)]],
@@ -976,7 +991,7 @@ const LOGOS = {"Qatar Islamic Bank": "data:image/png;base64,iVBORw0KGgoAAAANSUhE
   let indRows = [], indSort = ['v', -1];
   function industryOf(id) {
     const e = ENTS.get(id);
-    if ($('ind-gre').checked && e.type === 'Company (GRE)') return 'Government-related (GRE)';
+    if ($('ind-gre').checked && e.gre) return 'Government-related (GRE)';
     return e.industry || 'Other';
   }
   function renderInd() {
@@ -1052,7 +1067,7 @@ const LOGOS = {"Qatar Islamic Bank": "data:image/png;base64,iVBORw0KGgoAAAANSUhE
     P.forEach((p) => { add(tot, p.s, p.v); add(tot, p.t, p.v); add(oo, p.s, p.v); add(oi, p.t, p.v); add(on, p.s, p.n); add(on, p.t, p.n); });
     const vmax = Math.max(1, ...tot.values()), emax = P[0]?.v || 1;
     const rank = new Map([...DATA.entities].sort((a, b) => b.pr - a.pr).map((e, i) => [e.id, i + 1]));
-    const els = [...tot.keys()].map((id) => { const e = ENTS.get(id); return { data: { id, name: e.name, qib: !!e.qib, lv: 1, color: qcol(e), shape: shapeOf(e.type), size: size(tot.get(id), vmax),
+    const els = [...tot.keys()].map((id) => { const e = ENTS.get(id); return { data: { id, name: e.name, qib: !!e.qib, lv: 1, color: qcol(e), shape: shapeOf(e.type), icon: iconUri(e.type), size: size(tot.get(id), vmax),
         tip: [e.name, ['Type', e.type + (e.industry && e.industry !== 'Individuals' ? ' · ' + e.industry : '')], ['Bank', bankOfE(e)], ['Received (links shown)', QAR(oi.get(id) || 0)], ['Paid (links shown)', QAR(oo.get(id) || 0)], ['Payments', N.format(on.get(id) || 0)], ['Influence rank', `#${rank.get(id)} of ${DATA.entities.length}`]], label: tot.get(id) > vmax * 0.1 ? short(e.name) : '' } }; })
       .concat(P.map((p) => ({ data: { id: p.s + '>' + p.t, source: p.s, target: p.t, color: css('--muted'), arrow: 'triangle', w: 1 + 8 * Math.sqrt(p.v / emax), tier: 1,
         tip: [`${ENTS.get(p.s).name} → ${ENTS.get(p.t).name}`, ['Value', QAR(p.v)], ['Payments', N.format(p.n)], ['Average payment', avg(p.v, p.n)], ['Main route', RLABEL[p.route]]] } })));
