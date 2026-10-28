@@ -22,7 +22,12 @@ data = json.dumps({'entities': ents, 'flows': flows, 'bank_flows': banks}, separ
 BANK_KEYS = {'Qatar Islamic Bank': 'qib', 'Qatar National Bank': 'qnb', 'Dukhan Bank': 'dukhan', 'Commercial Bank of Qatar': 'cbq', 'Doha Bank': 'doha',
              'Standard Chartered Bank - Qatar': 'sc', 'Masraf Al Rayan': 'rayan', 'HSBC Bank Middle East - Qatar': 'hsbc', 'Ahli Bank': 'ahli', 'Qatar International Islamic Bank': 'qiib'}
 logos = {b: 'data:image/png;base64,' + base64.b64encode((HERE / 'bank_logos' / f'logo_{k}.png').read_bytes()).decode() for b, k in BANK_KEYS.items()}
-html = (HERE / 'template.html').read_text().replace('__DATA__', data).replace('__LOGOS__', json.dumps(logos))
+# counterparty type icons: Twemoji (CC-BY 4.0, github.com/jdecked/twemoji), sized so Safari can draw them on canvas
+def icon(name):
+    svg = (HERE / 'type_icons' / f'{name}.svg').read_text().replace('<svg ', '<svg width="72" height="72" ', 1)
+    return 'data:image/svg+xml;base64,' + base64.b64encode(svg.encode()).decode()
+icons = {'Company': icon('company'), 'Company (GRE)': icon('gre'), 'Government': icon('government'), 'Charity': icon('charity'), 'Individual': icon('individual')}
+html = (HERE / 'template.html').read_text().replace('__DATA__', data).replace('__LOGOS__', json.dumps(logos)).replace('__ICONS__', json.dumps(icons))
 
 BRAND = {'blue': '#0075B0', 'navy': '#00111A', 'orange': '#DF7A00'}
 brand_css = f"""<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap">

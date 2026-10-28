@@ -122,8 +122,8 @@ tbody tr:hover td { background: var(--accent-soft); }
 .blogo { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
 .blogo img { height: 26px; width: auto; max-width: 120px; object-fit: contain; background: #fff; border-radius: 3px; padding: 1px 3px; box-shadow: 0 0 0 1px var(--line); }
 .chk .blogo img { height: 22px; max-width: 110px; }
-.shape { display: inline-block; width: 16px; text-align: center; color: var(--muted); }
-.ticon { width: 14px; height: 14px; vertical-align: -2px; color: var(--muted); flex: none; }
+.shape { display: inline-block; width: 20px; text-align: center; }
+.ticon { width: 18px; height: 18px; vertical-align: -4px; flex: none; }
 td .ticon { margin-right: 5px; }
 .selrow .blogo img { height: 30px; max-width: 150px; }
 .cochips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
@@ -321,7 +321,7 @@ td .ticon { margin-right: 5px; }
       </section>
     </div>
   </div>
-  <p class="foot">Data: synthetic transactions loaded into Neo4j (Entity, Transaction, Bank and Month nodes, with PAID and OWN_ACCOUNT_AT links). A self transfer is a payment where the same company is on both sides. Amounts are in QAR.</p>
+  <p class="foot">Icons: Twemoji (CC-BY 4.0). Data: synthetic transactions loaded into Neo4j (Entity, Transaction, Bank and Month nodes, with PAID and OWN_ACCOUNT_AT links). A self transfer is a payment where the same company is on both sides. Amounts are in QAR.</p>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.30.2/cytoscape.min.js"></script>
@@ -329,6 +329,7 @@ td .ticon { margin-right: 5px; }
 <script>
 const DATA = __DATA__;
 const LOGOS = __LOGOS__;
+const ICONS = __ICONS__;
 (() => {
   const $ = (id) => document.getElementById(id);
   const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
@@ -338,18 +339,10 @@ const LOGOS = __LOGOS__;
   const TYPES = [['Company', '--company'], ['Government', '--gov'], ['Charity', '--charity'], ['Individual', '--indiv']];
   const tcol = (t) => css((TYPES.find((x) => x[0] === t) || [0, '--indiv'])[1]);
   const qcol = (e) => css(e.qib ? '--qibc' : '--nonqib');
-  // one icon per counterparty type (Material icon paths, 24x24)
-  const ICONS = {
-    Company: 'M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z',
-    'Company (GRE)': 'M17 11V3H7v4H3v14h8v-4h2v4h8V11h-4zM7 19H5v-2h2v2zm0-4H5v-2h2v2zm0-4H5V9h2v2zm4 4H9v-2h2v2zm0-4H9V9h2v2zm0-4H9V5h2v2zm4 8h-2v-2h2v2zm0-4h-2V9h2v2zm0-4h-2V5h2v2zm4 12h-2v-2h2v2zm0-4h-2v-2h2v2z',
-    Government: 'M4 10v7h3v-7H4zm6 0v7h3v-7h-3zM2 22h19v-3H2v3zm14-12v7h3v-7h-3zm-4.5-9L2 6v2h19V6l-9.5-5z',
-    Charity: 'M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z',
-    Individual: 'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z',
-  };
-  const iconPath = (t) => ICONS[t] || ICONS.Company;
-  const iconUri = (t) => 'data:image/svg+xml;utf8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="#ffffff" d="${iconPath(t)}"/></svg>`);
-  const iconEl = (t) => { const ns = 'http://www.w3.org/2000/svg', svg = document.createElementNS(ns, 'svg'); svg.setAttribute('viewBox', '0 0 24 24'); svg.setAttribute('class', 'ticon'); svg.setAttribute('aria-hidden', 'true');
-    const pa = document.createElementNS(ns, 'path'); pa.setAttribute('d', iconPath(t)); pa.setAttribute('fill', 'currentColor'); svg.append(pa); return svg; };
+  // one colour icon per counterparty type (Twemoji, embedded by build.py); GREs get their own icon
+  const iconKey = (t) => (t && typeof t === 'object' ? (t.gre ? 'Company (GRE)' : t.type) : t);
+  const iconUri = (t) => ICONS[iconKey(t)] || ICONS.Company;
+  const iconEl = (t) => { const i = document.createElement('img'); i.src = iconUri(t); i.className = 'ticon'; i.alt = ''; return i; };
   const shapeOf = () => 'ellipse';
   const logoUri = (b) => LOGOS[b] || '';
   // a bank shown by its logo alone; the name stays available as the tooltip and for screen readers
@@ -427,8 +420,8 @@ const LOGOS = __LOGOS__;
   $('banks-none').addEventListener('click', () => { setAllBanks(false); });
   // rebind bank checkboxes to the live set after "all"/"none"
   $('banks').addEventListener('change', (ev) => { const i = ev.target; if (i.type === 'checkbox') { i.checked ? S.banks.add(i.value) : S.banks.delete(i.value); } }, true);
-  $('legend').replaceChildren(...[['--qibc', 'QIB customer'], ['--nonqib', 'Banks elsewhere (not a QIB customer)']].map(([c, t]) => { const s = document.createElement('span'); const i = document.createElement('i'); i.style.background = `var(${c})`; s.append(i, t); return s; }),
-    ...TYPES.map(([t]) => { const s = document.createElement('span'); s.append(iconEl(t), ' ' + t); return s; }),
+  $('legend').replaceChildren(...[['--qibc', 'Blue glow: QIB customer'], ['--nonqib', 'Green glow: banks elsewhere']].map(([c, t]) => { const s = document.createElement('span'); const i = document.createElement('i'); i.style.background = `var(${c})`; s.append(i, t); return s; }),
+    ...['Company', 'Company (GRE)', 'Government', 'Charity', 'Individual'].map((t) => { const s = document.createElement('span'); s.append(iconEl(t), ' ' + (t === 'Company (GRE)' ? 'GRE' : t)); return s; }),
     ...ROUTES.map(([, l, c]) => { const s = document.createElement('span'); const b = document.createElement('b'); b.style.background = `var(${c})`; s.append(b, l); return s; }));
   $('bank-pick').replaceChildren(...BANKS.map((b) => new Option(b === QIBN ? 'QIB (both sides at QIB)' : b, b)));
   $('bank-pick').value = S.bank;
@@ -675,12 +668,15 @@ const LOGOS = __LOGOS__;
   const baseStyle = () => [
     { selector: 'node', style: { 'background-color': 'data(color)', width: 'data(size)', height: 'data(size)', label: 'data(label)', 'font-size': 11, 'font-family': css('--font-body'), color: css('--ink'), 'text-valign': 'bottom', 'text-margin-y': 4, 'text-outline-color': css('--bg'), 'text-outline-width': 2, 'border-width': 1, 'border-color': css('--bg') } },
     { selector: 'node[shape]', style: { shape: 'data(shape)' } },
-    { selector: 'node[icon]', style: { 'background-image': 'data(icon)', 'background-fit': 'none', 'background-width': '62%', 'background-height': '62%', 'background-clip': 'none' } },
+    { selector: 'node[icon]', style: { 'background-image': 'data(icon)', 'background-fit': 'contain', 'background-clip': 'none', 'background-opacity': 0, 'border-width': 0,
+      'underlay-color': 'data(color)', 'underlay-opacity': 0.3, 'underlay-padding': 6, 'underlay-shape': 'ellipse' } },
     { selector: 'node[lv = 0]', style: { 'font-size': 15, 'font-weight': 600, 'border-width': 6, 'border-color': css('--ring'), 'z-index': 10 } },
     { selector: 'node[lv = 2]', style: { 'font-size': 9, opacity: 0.88 } },
     { selector: 'node[?sel]', style: { 'border-width': 4, 'border-color': css('--ring') } },
     { selector: 'node[?bank]', style: { shape: 'round-rectangle', 'font-size': 12, 'font-weight': 600 } },
     { selector: 'node[logo]', style: { 'background-image': 'data(logo)', 'background-fit': 'contain', 'background-color': '#ffffff', 'background-clip': 'node', 'background-width': '86%', 'background-height': '86%', 'border-width': 2, 'border-color': 'data(color)', label: '', width: 'data(lw)', height: 'data(lh)' } },
+    { selector: 'node[icon][lv = 0]', style: { 'underlay-color': css('--ring'), 'underlay-opacity': 0.45, 'underlay-padding': 10, 'border-width': 0 } },
+    { selector: 'node[icon][?sel]', style: { 'underlay-color': css('--ring'), 'underlay-opacity': 0.45, 'underlay-padding': 8, 'border-width': 0 } },
     { selector: 'edge', style: { 'line-color': 'data(color)', 'target-arrow-color': 'data(color)', 'target-arrow-shape': 'data(arrow)', 'arrow-scale': 0.8, width: 'data(w)', 'curve-style': 'bezier', opacity: 0.6 } },
     { selector: 'edge[tier = 2]', style: { opacity: 0.2, 'line-style': 'dashed' } },
     { selector: '.faded', style: { opacity: 0.07 } },
@@ -737,7 +733,7 @@ const LOGOS = __LOGOS__;
           ...(n.lv === 2 ? [['Linked through', ENTS.get(n.parent)?.name ?? '–']] : []),
           ...(n.lv === 1 ? [[`Paid to ${short(ce.name)}`, toC ? `${QAR(toC.v)} · ${PAY(toC.n)}` : '–'], [`Received from ${short(ce.name)}`, fromC ? `${QAR(fromC.v)} · ${PAY(fromC.n)}` : '–']] : []),
           ['Money in (in view)', `${QAR(n.vin)} · ${PAY(n.nin)}`], ['Money out (in view)', `${QAR(n.vout)} · ${PAY(n.nout)}`]]; })(),
-      color: qcol(n), shape: shapeOf(n.type), icon: iconUri(n.type), size: size(n.vin + n.vout, vmax) * (n.lv === 0 ? 1.4 : 1), label: n.lv < 2 || (n.vin + n.vout) > vmax * 0.03 ? short(n.name) : '' } }));
+      color: qcol(n), shape: shapeOf(n.type), icon: iconUri(n), size: size(n.vin + n.vout, vmax) * (n.lv === 0 ? 1.4 : 1), label: n.lv < 2 || (n.vin + n.vout) > vmax * 0.03 ? short(n.name) : '' } }));
     P.filter((p) => lv.has(p.s) && lv.has(p.t)).forEach((p) => els.push({ data: { id: p.s + '>' + p.t, source: p.s, target: p.t, color: rcol(p.route), arrow: 'triangle', w: 1 + 9 * Math.sqrt(p.v / emax), tier: (p.s === c || p.t === c) ? 1 : 2, v: p.v, n: p.n, route: p.route,
       tip: [`${ENTS.get(p.s).name} → ${ENTS.get(p.t).name}`, ['Value', QAR(p.v)], ['Payments', N.format(p.n)], ['Average payment', avg(p.v, p.n)], ['Main route', RLABEL[p.route]],
         ...Object.entries(p.by).filter(([r]) => r !== p.route).map(([r, v]) => [RLABEL[r], QAR(v)])] } }));
@@ -831,7 +827,7 @@ const LOGOS = __LOGOS__;
     const coTot = new Map(); pr.forEach((p) => coTot.set(p.c, (coTot.get(p.c) || 0) + tot(p)));
     const bTot = new Map(); pr.forEach((p) => bTot.set(p.b, (bTot.get(p.b) || 0) + tot(p)));
     const cmax = Math.max(1, ...coTot.values()), bmax = Math.max(1, ...bTot.values());
-    const els = [...coTot.keys()].map((id) => ({ data: { id, label: short(ENTS.get(id).name), tip: ptip(ENTS.get(id).name, pr.filter((p) => p.c === id)), color: qcol(ENTS.get(id)), shape: shapeOf(ENTS.get(id).type), icon: iconUri(ENTS.get(id).type), size: size(coTot.get(id), cmax), qib: true, lv: 1 } }))
+    const els = [...coTot.keys()].map((id) => ({ data: { id, label: short(ENTS.get(id).name), tip: ptip(ENTS.get(id).name, pr.filter((p) => p.c === id)), color: qcol(ENTS.get(id)), shape: shapeOf(ENTS.get(id).type), icon: iconUri(ENTS.get(id)), size: size(coTot.get(id), cmax), qib: true, lv: 1 } }))
       .concat([...bTot.keys()].map((b) => ({ data: bankNode(b, 24 + 40 * Math.sqrt(bTot.get(b) / bmax), b === QIBN ? css('--qibc') : css('--muted'), { id: 'bank:' + b, tip: ptip(b === QIBN ? 'Its other QIB account' : b, pr.filter((p) => p.b === b)) }) })))
       .concat(pr.map((p) => ({ data: { id: p.c + '>' + p.b, source: p.c, target: 'bank:' + p.b, arrow: 'none', w: 1 + 9 * Math.sqrt(tot(p) / emax), tier: 1,
         tip: [...ptip(`${short(ENTS.get(p.c).name)} ↔ ${bankShort(p.b)}`, [p]), ['Months active', N.format(p.months)], ['Average transfer', avg(tot(p), p.n)]],
@@ -966,8 +962,8 @@ const LOGOS = __LOGOS__;
     const vmax = Math.max(1, ...typeRows.map((r) => r.total));
     const ttip = (r) => [CTLABEL[r.type], [`Credit: ${short(cn)} received`, `${QAR(r.inn)} · ${PAY(r.nIn)}`], [`Debit: ${short(cn)} paid`, `${QAR(r.out)} · ${PAY(r.nOut)}`], ['Net', signed(r.net)], ['Share of value', Math.round(100 * r.share) + '%'], ['Counterparties', `${N.format(r.cps)} (${N.format(r.qib)} QIB customers)`]];
     const ce = ENTS.get(c);
-    const els = [{ data: { id: 'centre', label: short(cn), color: qcol(ce), shape: 'ellipse', icon: iconUri(ce.type), size: 76, lv: 0, tip: [cn, ['Received', QAR(sum(typeRows, (r) => r.inn))], ['Paid', QAR(sum(typeRows, (r) => r.out))], ['Counterparties', N.format(sum(typeRows, (r) => r.cps))]] } }]
-      .concat(typeRows.map((r) => ({ data: { id: 't:' + r.type, label: CTLABEL[r.type], color: css('--muted'), shape: 'ellipse', icon: iconUri(r.type), size: 34 + 46 * Math.sqrt(r.total / vmax), sel: r.type === S.ctype, tip: ttip(r) } })))
+    const els = [{ data: { id: 'centre', label: short(cn), color: qcol(ce), shape: 'ellipse', icon: iconUri(ce), size: 76, lv: 0, tip: [cn, ['Received', QAR(sum(typeRows, (r) => r.inn))], ['Paid', QAR(sum(typeRows, (r) => r.out))], ['Counterparties', N.format(sum(typeRows, (r) => r.cps))]] } }]
+      .concat(typeRows.map((r) => ({ data: { id: 't:' + r.type, label: CTLABEL[r.type], color: css('--line'), shape: 'ellipse', icon: iconUri(r.type), size: 34 + 46 * Math.sqrt(r.total / vmax), sel: r.type === S.ctype, tip: ttip(r) } })))
       .concat(typeRows.flatMap((r) => [
         r.inn ? { data: { id: 'i' + r.type, source: 't:' + r.type, target: 'centre', color: rcol(mainRoute(G.get(r.type).filter((f) => f.t === c))), arrow: 'triangle', w: 1 + 12 * Math.sqrt(r.inn / vmax), tier: 1, tip: [`${CTLABEL[r.type]} → ${short(cn)}`, ['Received', QAR(r.inn)], ['Payments', N.format(r.nIn)], ['Average payment', avg(r.inn, r.nIn)], ...routeSplit(G.get(r.type).filter((f) => f.t === c))] } } : null,
         r.out ? { data: { id: 'o' + r.type, source: 'centre', target: 't:' + r.type, color: rcol(mainRoute(G.get(r.type).filter((f) => f.s === c))), arrow: 'triangle', w: 1 + 12 * Math.sqrt(r.out / vmax), tier: 1, tip: [`${short(cn)} → ${CTLABEL[r.type]}`, ['Paid', QAR(r.out)], ['Payments', N.format(r.nOut)], ['Average payment', avg(r.out, r.nOut)], ...routeSplit(G.get(r.type).filter((f) => f.s === c))] } } : null].filter(Boolean)));
