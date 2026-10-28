@@ -648,7 +648,7 @@ def overview(topn, months, routes, banks, types, purposes):
     return els, corr, hubs
 
 
-app.index_string = app.index_string.replace("</head>", """<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap"><style>
+app.index_string = app.index_string.replace("</head>", """<style>
 body{margin:0;font-family:"Open Sans","Segoe UI",system-ui,sans-serif;background:#f4f7f9;color:#00111A}
 .page{max-width:1600px;margin:0 auto;padding:16px;display:grid;gap:12px}
 .brandbar{display:flex;align-items:center;gap:16px;background:#0075B0;color:#fff;border-radius:10px;padding:10px 18px}

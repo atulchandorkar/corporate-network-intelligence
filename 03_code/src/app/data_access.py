@@ -99,10 +99,10 @@ class FileSource:
     label = "exported files"
 
     def __init__(self, folder=PROCESSED):
-        self._ents = pd.DataFrame(json.load(open(folder / "neo4j_entities.json")))
-        self._flows = pd.DataFrame(json.load(open(folder / "neo4j_flows.json")))
+        self._ents = pd.DataFrame(json.load(open(folder / "neo4j_entities.json", encoding="utf-8")))
+        self._flows = pd.DataFrame(json.load(open(folder / "neo4j_flows.json", encoding="utf-8")))
         self._flows["m"] = self._flows.m.astype(str)
-        self._banks = pd.DataFrame(json.load(open(folder / "neo4j_bank_flows.json")))
+        self._banks = pd.DataFrame(json.load(open(folder / "neo4j_bank_flows.json", encoding="utf-8")))
         self._banks["m"] = self._banks.m.astype(str)
 
     def entities(self):

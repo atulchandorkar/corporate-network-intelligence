@@ -1,5 +1,7 @@
 # Corporate Network Intelligence
 
+**On-premises install:** see [ONPREM_INSTALL.md](ONPREM_INSTALL.md). The dashboard (`docs/index.html`) is fully self-contained and runs with no internet access.
+
 A relationship-manager view of company payment networks, built on **synthetic** Qatar Islamic Bank (QIB) transaction data. Every transaction has a QIB account on one side; counterparties are real Qatar companies, government bodies and charities banking at QIB or other Qatar banks. All amounts and transactions are made up.
 
 **Live dashboard:** https://atulchandorkar.github.io/network-dashboard/ (published from a separate repository that holds only the built page)

@@ -4,8 +4,8 @@
 
 template.html -> ../../docs/index.html   (the GitHub Pages site: one self-contained HTML file)
 
-Chart libraries are inlined when local copies exist (set CYTOSCAPE_JS / PLOTLY_JS to cytoscape.min.js 3.30.2 and
-plotly.min.js 2.35.2), so the page works on networks that block CDNs; otherwise the page loads them from cdnjs.
+Everything the page needs is inlined from vendor/ (cytoscape 3.30.2, plotly 2.35.2, Open Sans), so the output file
+works with no internet access. CYTOSCAPE_JS / PLOTLY_JS can point at other copies of the libraries.
 """
 import os
 import base64, json, sys
@@ -13,7 +13,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 P = sys.argv[1] if len(sys.argv) > 1 else str(HERE.parents[1] / '01_data' / 'processed') + '/'
-ents = json.load(open(P + 'neo4j_entities.json')); flows = json.load(open(P + 'neo4j_flows.json')); banks = json.load(open(P + 'neo4j_bank_flows.json'))
+ents = json.load(open(P + 'neo4j_entities.json', encoding='utf-8')); flows = json.load(open(P + 'neo4j_flows.json', encoding='utf-8')); banks = json.load(open(P + 'neo4j_bank_flows.json', encoding='utf-8'))
 ents = [{k: e[k] for k in ('id', 'name', 'type', 'industry', 'qib', 'bank', 'pr', 'bt', 'comm', 'gre')} for e in ents]
 for f in flows: f['v'] = round(f['v']); f['m'] = str(f['m'])
 banks = [{'from_bank': b['from_bank'], 'to_bank': b['to_bank'], 'm': str(b['m']), 'v': round(b['v'])} for b in banks]
@@ -26,11 +26,14 @@ logos = {b: 'data:image/png;base64,' + base64.b64encode((HERE / 'bank_logos' / f
 def icon(name):
     return 'data:image/png;base64,' + base64.b64encode((HERE / 'type_icons' / f'{name}.png').read_bytes()).decode()
 icons = {'Company': icon('company'), 'Company (GRE)': icon('gre'), 'Government': icon('government'), 'Charity': icon('charity'), 'Individual': icon('individual')}
-html = (HERE / 'template.html').read_text().replace('__DATA__', data).replace('__LOGOS__', json.dumps(logos)).replace('__ICONS__', json.dumps(icons))
+html = (HERE / 'template.html').read_text(encoding='utf-8').replace('__DATA__', data).replace('__LOGOS__', json.dumps(logos)).replace('__ICONS__', json.dumps(icons))
 
 BRAND = {'blue': '#0075B0', 'navy': '#00111A', 'orange': '#DF7A00'}
-brand_css = f"""<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap">
-<style>
+VENDOR = HERE / 'vendor'
+fonts = ''.join(f"@font-face {{ font-family: 'Open Sans'; font-style: normal; font-weight: {w}; font-display: swap; src: url(data:font/woff2;base64,"
+                + base64.b64encode((VENDOR / 'fonts' / f'open-sans-latin-{w}-normal.woff2').read_bytes()).decode() + ") format('woff2'); }\n" for w in (400, 600, 700))
+brand_css = f"""<style>
+{fonts}
 :root {{ --brand-bar: {BRAND['blue']}; --accent: {BRAND['blue']}; --accent-soft: #e2f0f8; --ring: {BRAND['orange']}; --ink: {BRAND['navy']};
   --bg: #f4f7f9; --line: #dde5ea; --muted: #5c6b75; --gre: #00476b; --company: #5fa8d3; --out: #d64545; --in: #18a058; --onus: #8c97a4;
   --font-display: "Open Sans", "Segoe UI", system-ui, sans-serif; --font-body: "Open Sans", "Segoe UI", system-ui, sans-serif; }}
@@ -41,12 +44,12 @@ brand_css = f"""<link rel="stylesheet" href="https://fonts.googleapis.com/css2?f
 h1 {{ color: var(--ink); }}
 #plainhead {{ display: none; }}
 </style>"""
-LIBS = {'cytoscape': os.environ.get('CYTOSCAPE_JS', ''), 'plotly': os.environ.get('PLOTLY_JS', '')}
+LIBS = {'cytoscape': os.environ.get('CYTOSCAPE_JS') or str(VENDOR / 'cytoscape.min.js'), 'plotly': os.environ.get('PLOTLY_JS') or str(VENDOR / 'plotly.min.js')}
 def inline(h):
     for k, path in LIBS.items():
         if path and Path(path).exists():
             tag = next(l for l in h.splitlines() if l.startswith('<script src=') and k in l)
-            h = h.replace(tag, '<script>' + Path(path).read_text().replace('\ufffd', '\\ufffd') + '</script>')
+            h = h.replace(tag, '<script>' + Path(path).read_text(encoding='utf-8').replace('\ufffd', '\\ufffd') + '</script>')
     return h
 plain_bar = '''<div class="brandbar">
     <div class="bt"><strong>Corporate Network Intelligence</strong><span>Relationship manager view of QIB company payment networks <span class="badge">Synthetic data</span></span></div>

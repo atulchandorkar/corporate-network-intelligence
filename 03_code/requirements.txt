@@ -1,0 +1,6 @@
+# Data pipeline (generate data, load Neo4j, analytics, export). The Dash app has its own list in src/app/requirements.txt.
+pandas>=2.0
+numpy>=1.26
+openpyxl>=3.1
+networkx>=3.2
+neo4j>=5.20

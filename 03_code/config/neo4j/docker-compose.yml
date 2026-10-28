@@ -9,7 +9,8 @@ services:
     environment:
       NEO4J_AUTH: neo4j/${NEO4J_PASSWORD:-change-me-please}
       NEO4J_server_memory_heap_max__size: 1G
-      NEO4J_PLUGINS: '["apoc", "graph-data-science"]'   # optional; remove if your network blocks plugin downloads
+      # No plugins are needed: PageRank and communities are computed in Python (analytics_and_export.py).
+      # NEO4J_PLUGINS: '["apoc", "graph-data-science"]'   # optional, and it downloads from the internet
     volumes:
       - ./data:/data
       - ../../../12_logs/neo4j:/logs
