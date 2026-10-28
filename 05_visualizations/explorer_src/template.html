@@ -146,16 +146,12 @@ tbody tr:hover td { background: var(--accent-soft); }
   <section class="topbar" aria-label="Company and period">
     <div class="fld"><label for="company">Company</label>
       <select id="company"></select></div>
-    <div class="fld ego-only"><span class="lab">Network depth</span>
-      <div class="seg" id="depth"><button type="button" data-v="1">1st level</button><button type="button" data-v="2" aria-pressed="true">1st + 2nd level</button></div></div>
     <div class="fld net-dir"><span class="lab" id="dir-lab">Money direction</span>
       <div class="seg" id="dir"><button type="button" data-v="both" aria-pressed="true">Both</button><button type="button" data-v="in">Money in</button><button type="button" data-v="out">Money out</button></div></div>
     <div class="fld"><span class="lab">Period</span>
       <div class="two"><select id="m-from" aria-label="From month"></select><select id="m-to" aria-label="To month"></select></div></div>
     <div class="fld"><span class="lab">Analyse</span>
       <div class="seg" id="scope"><button type="button" data-v="co" aria-pressed="true">This company</button><button type="button" data-v="all">All QIB customers</button></div></div>
-    <div class="fld ego-only"><span class="lab">2nd-level entities shown</span>
-      <div class="range" style="min-width:170px"><input type="range" id="maxl2" min="10" max="120" step="10" value="40" aria-label="Maximum second-level entities"><span id="maxl2-v">40</span></div></div>
     <div class="fld ego-only"><span class="lab">Layout</span>
       <div class="seg" id="layout" style="min-width:150px"><button type="button" data-v="rings" aria-pressed="true">Rings</button><button type="button" data-v="force">Force</button></div></div>
     <div class="fld"><span class="lab">Quick picks</span><div class="quick" id="quick"></div></div>
@@ -224,8 +220,7 @@ tbody tr:hover td { background: var(--accent-soft); }
           <div class="kpi"><span>Money in</span><strong id="k-in">–</strong></div>
           <div class="kpi"><span>Money out</span><strong id="k-out">–</strong></div>
           <div class="kpi"><span>Net</span><strong id="k-net">–</strong></div>
-          <div class="kpi"><span>1st-level counterparties</span><strong id="k-l1">–</strong></div>
-          <div class="kpi"><span>2nd-level entities</span><strong id="k-l2">–</strong></div>
+          <div class="kpi"><span>Counterparties</span><strong id="k-l1">–</strong></div>
           <div class="kpi"><span>Stays inside QIB</span><strong id="k-onus">–</strong></div>
           <div class="kpi"><span>Self transfers</span><strong id="k-self">–</strong></div>
         </div>
@@ -241,7 +236,7 @@ tbody tr:hover td { background: var(--accent-soft); }
         </div>
         <div class="card">
           <h2>Counterparties</h2>
-          <p class="note">First-level entities trade directly with the centre. Second-level entities trade with a first-level entity (shown under "Via"). Click a row to re-centre.</p>
+          <p class="note">Entities that trade directly with the centre company. Click a row to re-centre.</p>
           <input class="search" type="search" id="tsearch" placeholder="Search entities" aria-label="Search counterparties">
           <div class="tbox"><table id="table"></table></div>
         </div>
@@ -370,7 +365,7 @@ const LOGOS = __LOGOS__;
   const qibSide = (f) => (f.r === 'QIB_TO_OTHER' ? f.s : f.r === 'OTHER_TO_QIB' ? f.t : f.s);
   const cpSide = (f) => (qibSide(f) === f.s ? f.t : f.s);
 
-  const S = { view: 'brief', scope: 'co', center: byName.get('qatar airways group') || DATA.entities[0].id, depth: 2, dir: 'both', from: MONTHS[0], to: MONTHS.at(-1),
+  const S = { view: 'brief', scope: 'co', center: byName.get('qatar airways group') || DATA.entities[0].id, depth: 1, dir: 'both', from: MONTHS[0], to: MONTHS.at(-1),
     routes: new Set(ROUTES.map((r) => r[0])), banks: new Set(BANKS), types: new Set(TYPES.map((t) => t[0])), purpose: '', maxl2: 40, layout: 'rings', history: [], bank: 'Qatar National Bank' };
 
   // ---------- controls ----------
@@ -394,7 +389,7 @@ const LOGOS = __LOGOS__;
     [...$(id).children].forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
     S[key] = cast(b.dataset.v); render();
   });
-  seg('depth', 'depth', Number); seg('dir', 'dir'); seg('layout', 'layout'); seg('scope', 'scope');
+  seg('dir', 'dir'); seg('layout', 'layout'); seg('scope', 'scope');
   const opts = (sel, vals, lab) => sel.replaceChildren(...vals.map((v) => new Option(lab(v), v)));
   opts($('m-from'), MONTHS, mLabel); opts($('m-to'), MONTHS, mLabel); $('m-to').value = S.to;
   $('m-from').addEventListener('change', () => { S.from = $('m-from').value; if (S.from > S.to) { S.to = S.from; $('m-to').value = S.to; } render(); });
@@ -421,8 +416,6 @@ const LOGOS = __LOGOS__;
   $('banks-none').addEventListener('click', () => { setAllBanks(false); });
   // rebind bank checkboxes to the live set after "all"/"none"
   $('banks').addEventListener('change', (ev) => { const i = ev.target; if (i.type === 'checkbox') { i.checked ? S.banks.add(i.value) : S.banks.delete(i.value); } }, true);
-  $('maxl2').addEventListener('input', () => { $('maxl2-v').textContent = $('maxl2').value; });
-  $('maxl2').addEventListener('change', () => { S.maxl2 = +$('maxl2').value; render(); });
   $('legend').replaceChildren(...[['--qibc', 'QIB customer'], ['--nonqib', 'Banks elsewhere (not a QIB customer)']].map(([c, t]) => { const s = document.createElement('span'); const i = document.createElement('i'); i.style.background = `var(${c})`; s.append(i, t); return s; }),
     ...TYPES.map(([t]) => { const s = document.createElement('span'); s.textContent = `${SHAPES[t][1]} ${t}`; return s; }),
     ...ROUTES.map(([, l, c]) => { const s = document.createElement('span'); const b = document.createElement('b'); b.style.background = `var(${c})`; s.append(b, l); return s; }));
@@ -540,7 +533,7 @@ const LOGOS = __LOGOS__;
     if (nw.length || lp.length) ins.push((nw.length ? `${nw.length} new counterpart${nw.length === 1 ? 'y' : 'ies'} appeared in the last three months (largest: ${nw[0].name})` : 'No new counterparties appeared in the last three months') +
       (lp.length ? `; ${lp.length} went quiet, the largest being ${lp[0].name} (${QAR(lp[0].v)} earlier in the period).` : '; none went quiet.'));
     // network position
-    ins.push(`In the payment network ${nm} ranks #${rank} of ${DATA.entities.length} by influence, trades directly with ${l1.size} entities and reaches ${l2.size} more through them.`);
+    ins.push(`In the payment network ${nm} ranks #${rank} of ${DATA.entities.length} by influence, trades directly with ${l1.size} entities.`);
 
     // ---- recommendations, each with the money it concerns; credit-style ones do not apply to government bodies
     const gv = e.type === 'Government';
@@ -717,12 +710,12 @@ const LOGOS = __LOGOS__;
   function renderEgo() {
     const { f1, nodes, P } = ego();
     const c = S.center, ce = ENTS.get(c);
-    $('net-title').textContent = `${ce.name}: ${S.depth === 2 ? 'first- and second-level' : 'first-level'} network`;
+    $('net-title').textContent = `${ce.name}: counterparty network`;
     const vmax = Math.max(1, ...nodes.map((n) => n.vin + n.vout)), emax = Math.max(1, ...P.map((p) => p.v));
     const lv = new Map(nodes.map((n) => [n.id, n.lv]));
     const els = nodes.map((n) => ({ data: { id: n.id, name: n.name, type: n.type, bankName: n.bank, qib: !!n.qib, lv: n.lv, vin: n.vin, vout: n.vout,
       tip: (() => { const toC = P.find((p) => p.s === n.id && p.t === c), fromC = P.find((p) => p.s === c && p.t === n.id);
-        return [n.name, ['Type', n.type + (n.industry && n.industry !== 'Individuals' ? ' · ' + n.industry : '')], ['Bank', bankOfE(n)], ['Level', ['Centre', '1st level', '2nd level'][n.lv]],
+        return [n.name, ['Type', n.type + (n.industry && n.industry !== 'Individuals' ? ' · ' + n.industry : '')], ['Bank', bankOfE(n)],
           ...(n.lv === 2 ? [['Linked through', ENTS.get(n.parent)?.name ?? '–']] : []),
           ...(n.lv === 1 ? [[`Paid to ${short(ce.name)}`, toC ? `${QAR(toC.v)} · ${PAY(toC.n)}` : '–'], [`Received from ${short(ce.name)}`, fromC ? `${QAR(fromC.v)} · ${PAY(fromC.n)}` : '–']] : []),
           ['Money in (in view)', `${QAR(n.vin)} · ${PAY(n.nin)}`], ['Money out (in view)', `${QAR(n.vout)} · ${PAY(n.nout)}`]]; })(),
@@ -734,7 +727,7 @@ const LOGOS = __LOGOS__;
     const cy = mountCy('ego', $('net'), els, S.layout === 'rings' ? { name: 'preset', positions: (n) => pos[n.id()] || { x: 0, y: 0 }, fit: true, padding: 30 }
       : { name: 'cose', animate: false, idealEdgeLength: 120, nodeRepulsion: 40000, gravity: 0.5, fit: true, padding: 30 }, (n) => { if (n.id() !== S.center) recenter(n.id()); });
     cy.on('mouseover', 'node', (ev) => { const d = ev.target.data(); const st = document.createElement('strong'); st.textContent = d.name;
-      $('info').replaceChildren(st, ` · ${d.type} · ${d.qib ? 'QIB customer' : 'banks with ' + d.bankName} · ${['Centre', '1st level', '2nd level'][d.lv]} · in ${QAR(d.vin)}, out ${QAR(d.vout)} in view`); });
+      $('info').replaceChildren(st, ` · ${d.type} · ${d.qib ? 'QIB customer' : 'banks with ' + d.bankName} · in ${QAR(d.vin)}, out ${QAR(d.vout)} in view`); });
     cy.on('mouseover', 'edge', (ev) => { const d = ev.target.data(); const st = document.createElement('strong'); st.textContent = `${ENTS.get(d.source).name} → ${ENTS.get(d.target).name}`; $('info').replaceChildren(st, ` · ${QAR(d.v)} over ${N.format(d.n)} payments · ${RLABEL[d.route]}`); });
     $('back').hidden = !S.history.length;
 
@@ -743,7 +736,6 @@ const LOGOS = __LOGOS__;
     $('k-in').textContent = QAR(vin); $('k-out').textContent = QAR(vout);
     $('k-net').textContent = (vin >= vout ? '+' : '−') + QAR(Math.abs(vin - vout));
     $('k-l1').textContent = N.format(nodes.filter((n) => n.lv === 1).length);
-    $('k-l2').textContent = N.format(nodes.filter((n) => n.lv === 2).length);
     $('k-onus').textContent = vin + vout ? Math.round(100 * onus / (vin + vout)) + '%' : '–';
     $('k-self').textContent = self.length ? QAR(sum(self)) : 'None';
 
@@ -768,7 +760,7 @@ const LOGOS = __LOGOS__;
   let egoRows = [], egoSort = ['paid', -1];
   function paintEgoTable() {
     const q = $('tsearch').value.trim().toLowerCase();
-    table($('table'), [['name', 'Entity'], ['type', 'Type'], ['lv', 'Level'], ['bank', 'Bank', null, 'bankF'], ['via', 'Via'], ['paid', 'Paid to centre', QAR], ['recv', 'Received from centre', QAR], ['n', 'Payments', (v) => N.format(v)]],
+    table($('table'), [['name', 'Entity'], ['type', 'Type'], ['bank', 'Bank', null, 'bankF'], ['paid', 'Paid to centre', QAR], ['recv', 'Received from centre', QAR], ['n', 'Payments', (v) => N.format(v)]],
       egoRows.filter((r) => !q || r.name.toLowerCase().includes(q)), egoSort, paintEgoTable, (r) => r.id, (a, b) => a.lv - b.lv);
   }
   $('tsearch').addEventListener('input', paintEgoTable);
