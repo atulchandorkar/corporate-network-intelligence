@@ -7,18 +7,18 @@
 :root {
   --bg: #f6f4f2; --panel: #ffffff; --ink: #221a1d; --muted: #6b6166; --line: #e4dcdc; --accent: #8a1d3d; --accent-soft: #f3e3e8;
   --gre: #8a1d3d; --company: #d0708f; --gov: #2c7a55; --charity: #c79a1e; --indiv: #8d8f99;
-  --onus: #8c97a4; --out: #e0672e; --in: #7a5cc4; --ring: #c79a1e; --qibc: #0075B0; --nonqib: #2e9b57;
+  --onus: #8c97a4; --out: #d64545; --in: #18a058; --ring: #c79a1e; --qibc: #0075B0; --nonqib: #2e9b57;
   --font-display: "Newsreader", Georgia, "Times New Roman", serif;
   --font-body: "Public Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   --bg: #17141a; --panel: #211d24; --ink: #efe9ec; --muted: #a79da3; --line: #3a3239; --accent: #e07a9b; --accent-soft: #3a2430;
   --gre: #c4466c; --company: #e597b0; --gov: #4fb487; --charity: #e2b84a; --indiv: #a3a6b0;
-  --onus: #8f9aa6; --out: #f08a55; --in: #a58cf0; --ring: #e2b84a; --qibc: #4fb3e6; --nonqib: #4cc47a; color-scheme: dark; } }
+  --onus: #8f9aa6; --out: #f07272; --in: #4cc47a; --ring: #e2b84a; --qibc: #4fb3e6; --nonqib: #4cc47a; color-scheme: dark; } }
 :root[data-theme="dark"] {
   --bg: #17141a; --panel: #211d24; --ink: #efe9ec; --muted: #a79da3; --line: #3a3239; --accent: #e07a9b; --accent-soft: #3a2430;
   --gre: #c4466c; --company: #e597b0; --gov: #4fb487; --charity: #e2b84a; --indiv: #a3a6b0;
-  --onus: #8f9aa6; --out: #f08a55; --in: #a58cf0; --ring: #e2b84a; --qibc: #4fb3e6; --nonqib: #4cc47a; color-scheme: dark; }
+  --onus: #8f9aa6; --out: #f07272; --in: #4cc47a; --ring: #e2b84a; --qibc: #4fb3e6; --nonqib: #4cc47a; color-scheme: dark; }
 body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 14px; }
 .wrap { max-width: 1500px; margin: 0 auto; padding-block: 18px 40px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 14px; }
 h1 { font-family: var(--font-display); font-weight: 500; font-size: clamp(26px, 3.2vw, 36px); margin: 0; text-wrap: balance; color: var(--accent); }
@@ -154,6 +154,8 @@ td .ticon { margin-right: 5px; }
       <div class="two"><select id="m-from" aria-label="From month"></select><select id="m-to" aria-label="To month"></select></div></div>
     <div class="fld"><span class="lab">Analyse</span>
       <div class="seg" id="scope"><button type="button" data-v="co" aria-pressed="true">This company</button><button type="button" data-v="all">All QIB customers</button></div></div>
+    <div class="fld ego-only"><label for="topn-ego">Show in chart</label>
+      <select id="topn-ego"><option value="10">Top 10</option><option value="20" selected>Top 20</option><option value="30">Top 30</option><option value="50">Top 50</option><option value="0">All</option></select></div>
     <div class="fld ego-only"><span class="lab">Layout</span>
       <div class="seg" id="layout" style="min-width:150px"><button type="button" data-v="rings" aria-pressed="true">Rings</button><button type="button" data-v="force">Force</button></div></div>
     <div class="fld"><span class="lab">Quick picks</span><div class="quick" id="quick"></div></div>
@@ -228,6 +230,7 @@ td .ticon { margin-right: 5px; }
         <div class="card">
           <h2 id="net-title">Company network</h2>
           <div class="legend" id="legend"></div>
+          <p class="note" id="net-cover"></p>
           <div class="netbox"><div class="net" id="net"></div><div class="net-tools"><button type="button" id="fit">Fit</button><button type="button" id="back" hidden>Back</button></div></div>
           <div class="info" id="info">Hover over a dot for details. Click a dot to put it in the centre.</div>
         </div>
@@ -256,7 +259,7 @@ td .ticon { margin-right: 5px; }
           <div class="kpi"><span>Net leaving QIB</span><strong id="s-net">–</strong></div>
         </div>
         <div class="grid2">
-          <div class="card"><h2>Where the company keeps its other accounts</h2><p class="note">Lines link the company to each bank where it holds another account of its own. Thicker lines carry more money. Orange (debit): money mostly left QIB. Violet (credit): mostly came into QIB. Grey: between two QIB accounts.</p><div class="net small" id="net-self"></div></div>
+          <div class="card"><h2>Where the company keeps its other accounts</h2><p class="note">Lines link the company to each bank where it holds another account of its own. Thicker lines carry more money. Red: money mostly left QIB. Green: mostly came into QIB. Grey: between two QIB accounts.</p><div class="net small" id="net-self"></div></div>
           <div class="card"><h2>By bank holding the other account</h2><p class="note">Own-account money leaving QIB (left), coming back or moved between two QIB accounts (right).</p><div class="plot" id="p-self-bank"></div></div>
         </div>
         <div class="grid2">
@@ -330,7 +333,7 @@ const LOGOS = __LOGOS__;
   const $ = (id) => document.getElementById(id);
   const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
   const QIBN = 'Qatar Islamic Bank';
-  const ROUTES = [['ON_US', 'Both at QIB', '--onus'], ['QIB_TO_OTHER', 'QIB to other bank', '--out'], ['OTHER_TO_QIB', 'Other bank to QIB', '--in']];
+  const ROUTES = [['OTHER_TO_QIB', 'Into QIB (from another bank)', '--in'], ['QIB_TO_OTHER', 'Out of QIB (to another bank)', '--out'], ['ON_US', 'Within QIB (both at QIB)', '--onus']];
   const RLABEL = Object.fromEntries(ROUTES.map((r) => [r[0], r[1]]));
   const TYPES = [['Company', '--company'], ['Government', '--gov'], ['Charity', '--charity'], ['Individual', '--indiv']];
   const tcol = (t) => css((TYPES.find((x) => x[0] === t) || [0, '--indiv'])[1]);
@@ -373,7 +376,7 @@ const LOGOS = __LOGOS__;
   const cpSide = (f) => (qibSide(f) === f.s ? f.t : f.s);
 
   const S = { view: 'brief', scope: 'co', center: byName.get('qatar airways group') || DATA.entities[0].id, depth: 1, dir: 'both', from: MONTHS[0], to: MONTHS.at(-1),
-    routes: new Set(ROUTES.map((r) => r[0])), banks: new Set(BANKS), types: new Set(TYPES.map((t) => t[0])), purpose: '', maxl2: 40, layout: 'rings', history: [], bank: 'Qatar National Bank', ctype: 'Company' };
+    routes: new Set(ROUTES.map((r) => r[0])), banks: new Set(BANKS), types: new Set(TYPES.map((t) => t[0])), purpose: '', maxl2: 40, layout: 'rings', history: [], bank: 'Qatar National Bank', ctype: 'Company', topn: 20 };
 
   // ---------- controls ----------
   // every entity in the data, grouped: QIB customers first, then those banking elsewhere
@@ -396,6 +399,7 @@ const LOGOS = __LOGOS__;
     [...$(id).children].forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
     S[key] = cast(b.dataset.v); render();
   });
+  $('topn-ego').addEventListener('change', () => { S.topn = +$('topn-ego').value; render(); });
   seg('dir', 'dir'); seg('layout', 'layout'); seg('scope', 'scope');
   const opts = (sel, vals, lab) => sel.replaceChildren(...vals.map((v) => new Option(lab(v), v)));
   opts($('m-from'), MONTHS, mLabel); opts($('m-to'), MONTHS, mLabel); $('m-to').value = S.to;
@@ -413,7 +417,7 @@ const LOGOS = __LOGOS__;
       l.append(label); return l;
     }));
   };
-  checks($('routes'), ROUTES, S.routes);
+  checks($('routes'), ROUTES, S.routes, 'b');
   checks($('types'), TYPES.map(([t]) => [t, t]), S.types, null);
   $('types').querySelectorAll('label').forEach((l) => { const g = document.createElement('span'); g.className = 'shape'; g.append(iconEl(l.querySelector('input').value)); l.insertBefore(g, l.lastChild); });
   checks($('banks'), BANKS.map((b) => [b, b === QIBN ? 'QIB (both sides)' : bankShort(b)]), S.banks, null);
@@ -425,7 +429,7 @@ const LOGOS = __LOGOS__;
   $('banks').addEventListener('change', (ev) => { const i = ev.target; if (i.type === 'checkbox') { i.checked ? S.banks.add(i.value) : S.banks.delete(i.value); } }, true);
   $('legend').replaceChildren(...[['--qibc', 'QIB customer'], ['--nonqib', 'Banks elsewhere (not a QIB customer)']].map(([c, t]) => { const s = document.createElement('span'); const i = document.createElement('i'); i.style.background = `var(${c})`; s.append(i, t); return s; }),
     ...TYPES.map(([t]) => { const s = document.createElement('span'); s.append(iconEl(t), ' ' + t); return s; }),
-    ...['--in', '--out'].map((c) => { const s = document.createElement('span'); const b = document.createElement('b'); b.style.background = `var(${c})`; const t = document.createElement('span'); t.className = 'lg-' + c.slice(2); s.append(b, t); return s; }));
+    ...ROUTES.map(([, l, c]) => { const s = document.createElement('span'); const b = document.createElement('b'); b.style.background = `var(${c})`; s.append(b, l); return s; }));
   $('bank-pick').replaceChildren(...BANKS.map((b) => new Option(b === QIBN ? 'QIB (both sides at QIB)' : b, b)));
   $('bank-pick').value = S.bank;
   $('bank-pick').addEventListener('change', () => { S.bank = $('bank-pick').value; render(); });
@@ -714,11 +718,17 @@ const LOGOS = __LOGOS__;
   const bankNode = (b, sz, color, extra) => { const lh = 20 + sz * 0.45; return { id: (extra && extra.id) || b, label: bankShort(b), bank: true, lv: 1, color, size: sz, ...(logoUri(b) ? { logo: logoUri(b), lh, lw: lh * 2.8 } : {}), ...extra }; };
 
   function renderEgo() {
-    const { f1, nodes, P } = ego();
+    const { f1, nodes: all, P } = ego();
     const c = S.center, ce = ENTS.get(c);
+    const tot = (n) => n.vin + n.vout;
+    const cps = all.filter((n) => n.lv > 0).sort((a, b) => tot(b) - tot(a));
+    const top = S.topn ? cps.slice(0, S.topn) : cps;
+    const nodes = all.filter((n) => n.lv === 0).concat(top);
+    const allV = sum(cps, tot), topV = sum(top, tot);
+    $('net-cover').textContent = !cps.length ? 'No counterparties with these filters.' : top.length < cps.length
+      ? `Showing the top ${top.length} of ${cps.length} counterparties by value. They account for ${Math.round(100 * topV / allV)}% of the money (${QAR(topV)} of ${QAR(allV)}). The table below lists all ${cps.length}.`
+      : `Showing all ${cps.length} counterparties (${QAR(allV)}).`;
     $('net-title').textContent = `${ce.name}: counterparty network`;
-    document.querySelector('#legend .lg-in').textContent = `Credit: money into ${short(ce.name)}`;
-    document.querySelector('#legend .lg-out').textContent = `Debit: money out of ${short(ce.name)}`;
     const vmax = Math.max(1, ...nodes.map((n) => n.vin + n.vout)), emax = Math.max(1, ...P.map((p) => p.v));
     const lv = new Map(nodes.map((n) => [n.id, n.lv]));
     const els = nodes.map((n) => ({ data: { id: n.id, name: n.name, type: n.type, bankName: n.bank, qib: !!n.qib, lv: n.lv, vin: n.vin, vout: n.vout,
@@ -728,8 +738,8 @@ const LOGOS = __LOGOS__;
           ...(n.lv === 1 ? [[`Paid to ${short(ce.name)}`, toC ? `${QAR(toC.v)} · ${PAY(toC.n)}` : '–'], [`Received from ${short(ce.name)}`, fromC ? `${QAR(fromC.v)} · ${PAY(fromC.n)}` : '–']] : []),
           ['Money in (in view)', `${QAR(n.vin)} · ${PAY(n.nin)}`], ['Money out (in view)', `${QAR(n.vout)} · ${PAY(n.nout)}`]]; })(),
       color: qcol(n), shape: shapeOf(n.type), icon: iconUri(n.type), size: size(n.vin + n.vout, vmax) * (n.lv === 0 ? 1.4 : 1), label: n.lv < 2 || (n.vin + n.vout) > vmax * 0.03 ? short(n.name) : '' } }));
-    P.filter((p) => lv.has(p.s) && lv.has(p.t)).forEach((p) => els.push({ data: { id: p.s + '>' + p.t, source: p.s, target: p.t, color: css(p.t === c ? '--in' : '--out'), arrow: 'triangle', w: 1 + 9 * Math.sqrt(p.v / emax), tier: (p.s === c || p.t === c) ? 1 : 2, v: p.v, n: p.n, route: p.route,
-      tip: [`${ENTS.get(p.s).name} → ${ENTS.get(p.t).name}`, [p.t === c ? `Credit to ${short(ce.name)}` : `Debit from ${short(ce.name)}`, QAR(p.v)], ['Payments', N.format(p.n)], ['Average payment', avg(p.v, p.n)], ['Main route', RLABEL[p.route]],
+    P.filter((p) => lv.has(p.s) && lv.has(p.t)).forEach((p) => els.push({ data: { id: p.s + '>' + p.t, source: p.s, target: p.t, color: rcol(p.route), arrow: 'triangle', w: 1 + 9 * Math.sqrt(p.v / emax), tier: (p.s === c || p.t === c) ? 1 : 2, v: p.v, n: p.n, route: p.route,
+      tip: [`${ENTS.get(p.s).name} → ${ENTS.get(p.t).name}`, ['Value', QAR(p.v)], ['Payments', N.format(p.n)], ['Average payment', avg(p.v, p.n)], ['Main route', RLABEL[p.route]],
         ...Object.entries(p.by).filter(([r]) => r !== p.route).map(([r, v]) => [RLABEL[r], QAR(v)])] } }));
     const pos = ringPos(nodes);
     const cy = mountCy('ego', $('net'), els, S.layout === 'rings' ? { name: 'preset', positions: (n) => pos[n.id()] || { x: 0, y: 0 }, fit: true, padding: 30 }
@@ -743,7 +753,7 @@ const LOGOS = __LOGOS__;
     const self = FLOWS.filter((f) => f.x && f.s === c && pass(f));
     $('k-in').textContent = QAR(vin); $('k-out').textContent = QAR(vout);
     $('k-net').textContent = (vin >= vout ? '+' : '−') + QAR(Math.abs(vin - vout));
-    $('k-l1').textContent = N.format(nodes.filter((n) => n.lv === 1).length);
+    $('k-l1').textContent = N.format(cps.length);
     $('k-onus').textContent = vin + vout ? Math.round(100 * onus / (vin + vout)) + '%' : '–';
     $('k-self').textContent = self.length ? QAR(sum(self)) : 'None';
 
@@ -758,7 +768,7 @@ const LOGOS = __LOGOS__;
       x: purposes.map((p) => sum(f1.filter((f) => f.c === p && f.r === r))), hovertemplate: '%{y}: QAR %{x:,.0f}<extra>' + l + '</extra>' })),
     lay({ barmode: 'stack', margin: { l: 170, r: 10, t: 10, b: 40 }, xaxis: ax({ tickformat: '~s' }), height: Math.max(260, 32 * purposes.length + 80) }), PCFG);
 
-    egoRows = nodes.filter((n) => n.lv > 0).map((n) => {
+    egoRows = cps.map((n) => {
       const toC = P.filter((p) => p.s === n.id && p.t === c), fromC = P.filter((p) => p.s === c && p.t === n.id), any = P.filter((p) => p.s === n.id || p.t === n.id);
       return { id: n.id, name: n.name, type: n.type, lv: n.lv, bank: n.qib ? 'QIB' : bankShort(n.bank), bankF: n.qib ? QIBN : n.bank, via: n.lv === 2 ? ENTS.get(n.parent)?.name ?? '' : '',
         paid: sum(toC), recv: sum(fromC), n: sum(n.lv === 1 ? toC.concat(fromC) : any, (p) => p.n) };
@@ -896,7 +906,7 @@ const LOGOS = __LOGOS__;
     $('bank-logo').replaceChildren(bankCell(S.bank, ''));
     const co = S.scope === 'co', cn = ENTS.get(S.center).name;
     $('banks-h').textContent = co ? `Banks on the other side of ${cn}'s payments` : 'QIB and the other Qatar banks';
-    $('banks-note').textContent = co ? `QIB in the centre. Each bank's line shows money ${cn} paid to (orange, debit) or received from (violet, credit) accounts at that bank, self transfers included. Switch "Analyse" to All QIB customers for the whole bank. Click a bank to analyse it below.`
+    $('banks-note').textContent = co ? `QIB in the centre. Each bank's line shows money ${cn} paid to (red, out of QIB) or received from (green, into QIB) accounts at that bank, self transfers included. Switch "Analyse" to All QIB customers for the whole bank. Click a bank to analyse it below.`
       : "QIB in the centre. Each bank's line width shows the money exchanged with QIB customers (self transfers included). Click a bank to analyse it below.";
     $('banks-all-h').textContent = co ? `Banks ${cn} deals with` : 'All banks';
     const r = rows.filter((f) => f.b === S.bank);
@@ -935,6 +945,8 @@ const LOGOS = __LOGOS__;
   const CTLABEL = { 'Company': 'Companies', 'Company (GRE)': 'Government-related companies (GRE)', 'Government': 'Government', 'Charity': 'Charities', 'Individual': 'Individuals' };
   const ctypeOf = (id) => { const e = ENTS.get(id); return e.gre ? 'Company (GRE)' : e.type; };
   let typeRows = [], typeSort = ['total', -1], tcRows = [], tcSort = ['total', -1];
+  const mainRoute = (rows) => { const g = group(rows, (f) => f.r); return [...g].sort((a, b) => sum(b[1]) - sum(a[1]))[0]?.[0] || 'ON_US'; };
+  const routeSplit = (rows) => ROUTES.filter(([r]) => rows.some((f) => f.r === r)).map(([r, l]) => [l, QAR(sum(rows.filter((f) => f.r === r)))]);
   function renderTypes() {
     const c = S.center, cn = ENTS.get(c).name;
     let rows = filtered().filter((f) => !f.x && (f.s === c || f.t === c));
@@ -957,12 +969,12 @@ const LOGOS = __LOGOS__;
     const els = [{ data: { id: 'centre', label: short(cn), color: qcol(ce), shape: 'ellipse', icon: iconUri(ce.type), size: 76, lv: 0, tip: [cn, ['Received', QAR(sum(typeRows, (r) => r.inn))], ['Paid', QAR(sum(typeRows, (r) => r.out))], ['Counterparties', N.format(sum(typeRows, (r) => r.cps))]] } }]
       .concat(typeRows.map((r) => ({ data: { id: 't:' + r.type, label: CTLABEL[r.type], color: css('--muted'), shape: 'ellipse', icon: iconUri(r.type), size: 34 + 46 * Math.sqrt(r.total / vmax), sel: r.type === S.ctype, tip: ttip(r) } })))
       .concat(typeRows.flatMap((r) => [
-        r.inn ? { data: { id: 'i' + r.type, source: 't:' + r.type, target: 'centre', color: css('--in'), arrow: 'triangle', w: 1 + 12 * Math.sqrt(r.inn / vmax), tier: 1, tip: [`${CTLABEL[r.type]} → ${short(cn)}`, ['Credit', QAR(r.inn)], ['Payments', N.format(r.nIn)], ['Average payment', avg(r.inn, r.nIn)]] } } : null,
-        r.out ? { data: { id: 'o' + r.type, source: 'centre', target: 't:' + r.type, color: css('--out'), arrow: 'triangle', w: 1 + 12 * Math.sqrt(r.out / vmax), tier: 1, tip: [`${short(cn)} → ${CTLABEL[r.type]}`, ['Debit', QAR(r.out)], ['Payments', N.format(r.nOut)], ['Average payment', avg(r.out, r.nOut)]] } } : null].filter(Boolean)));
+        r.inn ? { data: { id: 'i' + r.type, source: 't:' + r.type, target: 'centre', color: rcol(mainRoute(G.get(r.type).filter((f) => f.t === c))), arrow: 'triangle', w: 1 + 12 * Math.sqrt(r.inn / vmax), tier: 1, tip: [`${CTLABEL[r.type]} → ${short(cn)}`, ['Received', QAR(r.inn)], ['Payments', N.format(r.nIn)], ['Average payment', avg(r.inn, r.nIn)], ...routeSplit(G.get(r.type).filter((f) => f.t === c))] } } : null,
+        r.out ? { data: { id: 'o' + r.type, source: 'centre', target: 't:' + r.type, color: rcol(mainRoute(G.get(r.type).filter((f) => f.s === c))), arrow: 'triangle', w: 1 + 12 * Math.sqrt(r.out / vmax), tier: 1, tip: [`${short(cn)} → ${CTLABEL[r.type]}`, ['Paid', QAR(r.out)], ['Payments', N.format(r.nOut)], ['Average payment', avg(r.out, r.nOut)], ...routeSplit(G.get(r.type).filter((f) => f.s === c))] } } : null].filter(Boolean)));
     mountCy('types', $('net-types'), els, { name: 'concentric', concentric: (n) => (n.id() === 'centre' ? 2 : 1), levelWidth: () => 1, minNodeSpacing: 60, fit: true, padding: 40, animate: false },
       (n) => { if (n.id() !== 'centre') { S.ctype = n.id().slice(2); render(); } });
     $('types-h').textContent = `${cn} and its counterparty types`;
-    $('types-note').textContent = `${cn} in the centre, with every counterparty of the same type added together. Violet lines (credit): money ${cn} received from that type. Orange lines (debit): money it paid. Thicker lines carry more money. Click a type to analyse it below.`;
+    $('types-note').textContent = `${cn} in the centre, with every counterparty of the same type added together. Each type has up to two lines: money received from it and money paid to it (arrows show the direction). Line colour shows the bank route of most of that money: green into QIB from another bank, red out of QIB to another bank, grey within QIB. Thicker lines carry more money. Click a type to analyse it below.`;
     $('types-all-h').textContent = `${cn} by counterparty type`;
 
     // selected type

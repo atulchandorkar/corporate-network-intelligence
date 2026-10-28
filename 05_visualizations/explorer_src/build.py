@@ -28,12 +28,12 @@ BRAND = {'blue': '#0075B0', 'navy': '#00111A', 'orange': '#DF7A00'}
 brand_css = f"""<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap">
 <style>
 :root {{ --brand-bar: {BRAND['blue']}; --accent: {BRAND['blue']}; --accent-soft: #e2f0f8; --ring: {BRAND['orange']}; --ink: {BRAND['navy']};
-  --bg: #f4f7f9; --line: #dde5ea; --muted: #5c6b75; --gre: #00476b; --company: #5fa8d3; --out: {BRAND['orange']}; --in: #7a5cc4; --onus: #8c97a4;
+  --bg: #f4f7f9; --line: #dde5ea; --muted: #5c6b75; --gre: #00476b; --company: #5fa8d3; --out: #d64545; --in: #18a058; --onus: #8c97a4;
   --font-display: "Open Sans", "Segoe UI", system-ui, sans-serif; --font-body: "Open Sans", "Segoe UI", system-ui, sans-serif; }}
 @media (prefers-color-scheme: dark) {{ :root:not([data-theme="light"]) {{ --brand-bar: #0075B0; --accent: #4fb3e6; --accent-soft: #0d2a3a; --ring: #f29a2e;
-  --ink: #e8f1f6; --bg: #0b1820; --panel: #11222c; --line: #24394a; --muted: #93a8b6; --gre: #4fb3e6; --company: #8cc6e8; --out: #f29a2e; --in: #a58cf0; --onus: #8f9aa6; }} }}
+  --ink: #e8f1f6; --bg: #0b1820; --panel: #11222c; --line: #24394a; --muted: #93a8b6; --gre: #4fb3e6; --company: #8cc6e8; --out: #f07272; --in: #4cc47a; --onus: #8f9aa6; }} }}
 :root[data-theme="dark"] {{ --brand-bar: #0075B0; --accent: #4fb3e6; --accent-soft: #0d2a3a; --ring: #f29a2e;
-  --ink: #e8f1f6; --bg: #0b1820; --panel: #11222c; --line: #24394a; --muted: #93a8b6; --gre: #4fb3e6; --company: #8cc6e8; --out: #f29a2e; --in: #a58cf0; --onus: #8f9aa6; }}
+  --ink: #e8f1f6; --bg: #0b1820; --panel: #11222c; --line: #24394a; --muted: #93a8b6; --gre: #4fb3e6; --company: #8cc6e8; --out: #f07272; --in: #4cc47a; --onus: #8f9aa6; }}
 h1 {{ color: var(--ink); }}
 #plainhead {{ display: none; }}
 </style>"""
