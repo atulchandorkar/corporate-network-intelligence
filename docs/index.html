@@ -190,8 +190,7 @@ h1 { color: var(--ink); }
         <button class="tab" role="tab" aria-selected="false" data-view="ego" type="button">Company network</button>
         <button class="tab" role="tab" aria-selected="false" data-view="self" type="button">Self transfers</button>
         <button class="tab" role="tab" aria-selected="false" data-view="banks" type="button">Banks</button>
-        <button class="tab" role="tab" aria-selected="false" data-view="ind" type="button">Industry flows</button>
-        <button class="tab" role="tab" aria-selected="false" data-view="over" type="button">QIB portfolio</button>
+        <button class="tab" role="tab" aria-selected="false" data-view="types" type="button">Counterparty types</button>
       </nav>
 
       <!-- RM brief -->
@@ -307,34 +306,28 @@ h1 { color: var(--ink); }
         </div>
       </section>
 
-      <!-- Industry flows -->
-      <section class="main" id="view-ind" hidden>
+      <!-- Counterparty types -->
+      <section class="main" id="view-types" hidden>
         <div class="card">
-          <h2 id="ind-h">How money moves between industries</h2>
-          <p class="note" id="ind-note">Left: the payer's industry. Right: the payee's industry. Government bodies are an industry of their own. Self transfers are excluded.</p>
-          <div class="selrow">
-            <label class="toggle"><input type="checkbox" id="ind-gre" checked> Group government-related companies (GREs) as one industry</label>
-            <label class="toggle"><input type="checkbox" id="ind-indiv"> Include individuals</label>
-            <label for="ind-top" class="ind-all">Links shown</label><select id="ind-top" class="ind-all"><option>15</option><option selected>25</option><option>40</option><option>80</option></select>
-          </div>
-          <div class="plot" id="p-sankey" style="min-height:560px"></div>
+          <h2 id="types-h">Counterparty types</h2>
+          <p class="note" id="types-note"></p>
+          <div class="net small" id="net-types"></div>
+        </div>
+        <div class="card"><h2 id="types-all-h">By counterparty type</h2><p class="note">All counterparties of each type added together. Self transfers are excluded. Click a row to analyse that type.</p><div class="tbox"><table id="t-types"></table></div></div>
+        <div class="selrow"><label for="type-pick">Analyse type</label><select id="type-pick"></select></div>
+        <div class="kpis">
+          <div class="kpi"><span>Credit: received from them</span><strong id="ty-in">–</strong></div>
+          <div class="kpi"><span>Debit: paid to them</span><strong id="ty-out">–</strong></div>
+          <div class="kpi"><span>Net</span><strong id="ty-net">–</strong></div>
+          <div class="kpi"><span>Counterparties</span><strong id="ty-cp">–</strong></div>
+          <div class="kpi"><span>Of which QIB customers</span><strong id="ty-qib">–</strong></div>
+          <div class="kpi"><span>Payments</span><strong id="ty-n">–</strong></div>
         </div>
         <div class="grid2">
-          <div class="card" id="ind-matrix-card"><h2>Industry to industry matrix</h2><p class="note">Rows pay columns. Darker cells carry more money.</p><div class="plot" id="p-ind-matrix" style="min-height:480px"></div></div>
-          <div class="card"><h2 id="ind-net-h">Net position by industry</h2><p class="note" id="ind-net-note">Money received minus money paid. Positive industries are net receivers.</p><div class="plot" id="p-ind-net" style="min-height:480px"></div></div>
+          <div class="card"><h2>Monthly credit and debit</h2><p class="note">Money received from and paid to this type, by month.</p><div class="plot" id="p-type-month"></div></div>
+          <div class="card"><h2>Purpose of the payments</h2><p class="note">What the money exchanged with this type was for.</p><div class="plot" id="p-type-purpose"></div></div>
         </div>
-        <div class="card"><h2>Largest industry flows</h2><div class="tbox"><table id="t-ind"></table></div></div>
-      </section>
-
-      <!-- Overview -->
-      <section class="main" id="view-over" hidden>
-        <div class="card">
-          <h2>Largest relationships across all QIB customers</h2>
-          <p class="note">The biggest payer-to-payee relationships after the filters. Dots: blue = QIB customer, green = banks elsewhere. Arrows point from payer to payee. Click a dot to open it in Company network.</p>
-          <div class="range" style="max-width:420px"><span>Links</span><input type="range" id="topn" min="50" max="600" step="50" value="150" aria-label="Links shown"><span id="topn-v">150</span></div>
-          <div class="net" id="net-over"></div>
-        </div>
-        <div class="card"><h2>Most influential entities</h2><p class="note">PageRank on the payment graph, computed in Neo4j over the full year: high when large payers send money to the entity.</p><div class="plot" id="p-hubs"></div></div>
+        <div class="card"><h2 id="types-cp-h">Counterparties of this type</h2><p class="note">Click a row to open it in Company network.</p><div class="tbox"><table id="t-type-cp"></table></div></div>
       </section>
     </div>
   </div>
@@ -397,6 +390,7 @@ const LOGOS = {"Qatar Islamic Bank": "data:image/png;base64,iVBORw0KGgoAAAANSUhE
   // one icon per counterparty type (Material icon paths, 24x24)
   const ICONS = {
     Company: 'M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z',
+    'Company (GRE)': 'M17 11V3H7v4H3v14h8v-4h2v4h8V11h-4zM7 19H5v-2h2v2zm0-4H5v-2h2v2zm0-4H5V9h2v2zm4 4H9v-2h2v2zm0-4H9V9h2v2zm0-4H9V5h2v2zm4 8h-2v-2h2v2zm0-4h-2V9h2v2zm0-4h-2V5h2v2zm4 12h-2v-2h2v2zm0-4h-2v-2h2v2z',
     Government: 'M4 10v7h3v-7H4zm6 0v7h3v-7h-3zM2 22h19v-3H2v3zm14-12v7h3v-7h-3zm-4.5-9L2 6v2h19V6l-9.5-5z',
     Charity: 'M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z',
     Individual: 'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z',
@@ -431,7 +425,7 @@ const LOGOS = {"Qatar Islamic Bank": "data:image/png;base64,iVBORw0KGgoAAAANSUhE
   const cpSide = (f) => (qibSide(f) === f.s ? f.t : f.s);
 
   const S = { view: 'brief', scope: 'co', center: byName.get('qatar airways group') || DATA.entities[0].id, depth: 1, dir: 'both', from: MONTHS[0], to: MONTHS.at(-1),
-    routes: new Set(ROUTES.map((r) => r[0])), banks: new Set(BANKS), types: new Set(TYPES.map((t) => t[0])), purpose: '', maxl2: 40, layout: 'rings', history: [], bank: 'Qatar National Bank' };
+    routes: new Set(ROUTES.map((r) => r[0])), banks: new Set(BANKS), types: new Set(TYPES.map((t) => t[0])), purpose: '', maxl2: 40, layout: 'rings', history: [], bank: 'Qatar National Bank', ctype: 'Company' };
 
   // ---------- controls ----------
   // every entity in the data, grouped: QIB customers first, then those banking elsewhere
@@ -484,9 +478,6 @@ const LOGOS = {"Qatar Islamic Bank": "data:image/png;base64,iVBORw0KGgoAAAANSUhE
   $('legend').replaceChildren(...[['--qibc', 'QIB customer'], ['--nonqib', 'Banks elsewhere (not a QIB customer)']].map(([c, t]) => { const s = document.createElement('span'); const i = document.createElement('i'); i.style.background = `var(${c})`; s.append(i, t); return s; }),
     ...TYPES.map(([t]) => { const s = document.createElement('span'); s.append(iconEl(t), ' ' + t); return s; }),
     ...['--in', '--out'].map((c) => { const s = document.createElement('span'); const b = document.createElement('b'); b.style.background = `var(${c})`; const t = document.createElement('span'); t.className = 'lg-' + c.slice(2); s.append(b, t); return s; }));
-  ['ind-gre', 'ind-indiv', 'ind-top'].forEach((id) => $(id).addEventListener('change', render));
-  $('topn').addEventListener('input', () => { $('topn-v').textContent = $('topn').value; });
-  $('topn').addEventListener('change', render);
   $('bank-pick').replaceChildren(...BANKS.map((b) => new Option(b === QIBN ? 'QIB (both sides at QIB)' : b, b)));
   $('bank-pick').value = S.bank;
   $('bank-pick').addEventListener('change', () => { S.bank = $('bank-pick').value; render(); });
@@ -495,7 +486,7 @@ const LOGOS = {"Qatar Islamic Bank": "data:image/png;base64,iVBORw0KGgoAAAANSUhE
   const pass = (f) => f.m >= S.from && f.m <= S.to && S.routes.has(f.r) && S.banks.has(f.b) && (!S.purpose || f.c === S.purpose);
   const typeOk = (f) => S.types.has(ENTS.get(cpSide(f))?.type);
   const filtered = () => FLOWS.filter((f) => pass(f) && (f.x || typeOk(f)));
-  // "This company" limits the Self transfers, Banks and Industry pages to flows touching the selected company
+  // "This company" limits the Self transfers, Banks and Counterparty types pages to flows touching the selected company
   const scoped = (rows) => (S.scope === 'co' ? rows.filter((f) => f.s === S.center || f.t === S.center) : rows);
   function pairs(rows) {
     const m = new Map();
@@ -735,6 +726,7 @@ const LOGOS = {"Qatar Islamic Bank": "data:image/png;base64,iVBORw0KGgoAAAANSUhE
     { selector: 'node[icon]', style: { 'background-image': 'data(icon)', 'background-fit': 'none', 'background-width': '62%', 'background-height': '62%', 'background-clip': 'none' } },
     { selector: 'node[lv = 0]', style: { 'font-size': 15, 'font-weight': 600, 'border-width': 6, 'border-color': css('--ring'), 'z-index': 10 } },
     { selector: 'node[lv = 2]', style: { 'font-size': 9, opacity: 0.88 } },
+    { selector: 'node[?sel]', style: { 'border-width': 4, 'border-color': css('--ring') } },
     { selector: 'node[?bank]', style: { shape: 'round-rectangle', 'font-size': 12, 'font-weight': 600 } },
     { selector: 'node[logo]', style: { 'background-image': 'data(logo)', 'background-fit': 'contain', 'background-color': '#ffffff', 'background-clip': 'node', 'background-width': '86%', 'background-height': '86%', 'border-width': 2, 'border-color': 'data(color)', label: '', width: 'data(lw)', height: 'data(lh)' } },
     { selector: 'edge', style: { 'line-color': 'data(color)', 'target-arrow-color': 'data(color)', 'target-arrow-shape': 'data(arrow)', 'arrow-scale': 0.8, width: 'data(w)', 'curve-style': 'bezier', opacity: 0.6 } },
@@ -987,95 +979,72 @@ const LOGOS = {"Qatar Islamic Bank": "data:image/png;base64,iVBORw0KGgoAAAANSUhE
   $('t-banks').addEventListener('click', (ev) => { const tr = ev.target.closest('tr[data-key]'); if (tr) { S.bank = tr.dataset.key; $('bank-pick').value = S.bank; render(); $('bank-pick').scrollIntoView({ behavior: 'smooth', block: 'start' }); } });
   ['t-bank-cust', 't-bank-cp'].forEach((id) => $(id).addEventListener('click', (ev) => { const tr = ev.target.closest('tr[data-key]'); if (tr) { recenter(tr.dataset.key); show('ego'); } }));
 
-  // ---------- industries ----------
-  let indRows = [], indSort = ['v', -1];
-  function industryOf(id) {
-    const e = ENTS.get(id);
-    if ($('ind-gre').checked && e.gre) return 'Government-related (GRE)';
-    return e.industry || 'Other';
-  }
-  function renderInd() {
-    const incl = $('ind-indiv').checked, c = S.center, co = S.scope === 'co';
-    const rows = filtered().filter((f) => !f.x && (incl || (ENTS.get(f.s).type !== 'Individual' && ENTS.get(f.t).type !== 'Individual')));
-    const color = (name) => name === 'Government' ? css('--gov') : name === 'Government-related (GRE)' ? css('--gre') : name === 'Individuals' ? css('--indiv') : name === 'Charity & Non-Profit' ? css('--charity') : css('--company');
-    $('ind-matrix-card').hidden = co;
-    document.querySelectorAll('.ind-all').forEach((el) => { el.hidden = co; });
-    if (co) {
-      // the company in the middle: payer industries on the left, payee industries on the right
-      const name = ENTS.get(c).name;
-      $('ind-h').textContent = `${name}: where its money comes from and goes to`;
-      $('ind-note').textContent = `Left: industries of the entities paying ${name}. Right: industries it pays. Government bodies are an industry of their own. Self transfers are excluded.`;
-      $('ind-net-h').textContent = 'Receipts and payments by counterparty industry';
-      $('ind-net-note').textContent = 'Money in from each industry (right) and money out to it (left).';
-      const inR = rows.filter((f) => f.t === c), outR = rows.filter((f) => f.s === c);
-      const gin = [...group(inR, (f) => industryOf(f.s))].map(([k, r]) => ({ k, v: sum(r), n: sum(r, (f) => f.n) })).sort((a, b) => b.v - a.v);
-      const gout = [...group(outR, (f) => industryOf(f.t))].map(([k, r]) => ({ k, v: sum(r), n: sum(r, (f) => f.n) })).sort((a, b) => b.v - a.v);
-      const L = gin.map((g) => g.k), R = gout.map((g) => g.k), mid = L.length;
-      const labels = L.map((k) => k + ' (pays)').concat([short(name)], R.map((k) => k + ' (is paid)'));
-      plotSafe('p-sankey', [{ type: 'sankey', arrangement: 'snap', valueformat: ',.0f',
-        node: { label: labels, color: L.map(color).concat([css('--accent')], R.map(color)), pad: 14, thickness: 18, line: { width: 0 }, hovertemplate: '%{label}: QAR %{value:,.0f}<extra></extra>' },
-        link: { source: gin.map((_, i) => i).concat(gout.map(() => mid)), target: gin.map(() => mid).concat(gout.map((_, i) => mid + 1 + i)),
-          value: gin.map((g) => g.v).concat(gout.map((g) => g.v)), color: gin.map((g) => rgba(color(g.k), 0.4)).concat(gout.map((g) => rgba(color(g.k), 0.4))),
-          hovertemplate: '%{source.label} → %{target.label}: QAR %{value:,.0f}<extra></extra>' } }],
-      lay({ height: 520, margin: { l: 10, r: 10, t: 10, b: 10 } }), PCFG);
-      const inds = [...new Set(L.concat(R))].sort((a, b) => (sum(gin.filter((g) => g.k === a)) + sum(gout.filter((g) => g.k === a))) - (sum(gin.filter((g) => g.k === b)) + sum(gout.filter((g) => g.k === b))));
-      const vi = (k) => sum(gin.filter((g) => g.k === k)), vo = (k) => sum(gout.filter((g) => g.k === k));
-      plotSafe('p-ind-net', [
-        { type: 'bar', orientation: 'h', y: inds, x: inds.map((k) => -vo(k)), customdata: inds.map(vo), name: 'Paid to', marker: { color: css('--out') }, hovertemplate: '%{y}: QAR %{customdata:,.0f}<extra>Paid to</extra>' },
-        { type: 'bar', orientation: 'h', y: inds, x: inds.map(vi), name: 'Received from', marker: { color: css('--in') }, hovertemplate: '%{y}: QAR %{x:,.0f}<extra>Received from</extra>' },
-      ], lay({ barmode: 'relative', height: Math.max(300, 30 * inds.length + 90), margin: { l: 190, r: 10, t: 10, b: 40 }, xaxis: ax({ tickformat: '~s' }) }), PCFG);
-      const tot = sum(gin) + sum(gout);
-      indRows = gin.map((g) => ({ a: g.k, b: name, v: g.v, n: g.n, share: tot ? g.v / tot : 0 })).concat(gout.map((g) => ({ a: name, b: g.k, v: g.v, n: g.n, share: tot ? g.v / tot : 0 })));
-      paintInd();
-      return;
-    }
-    $('ind-h').textContent = 'How money moves between industries';
-    $('ind-note').textContent = "Left: the payer's industry. Right: the payee's industry. Government bodies are an industry of their own. Self transfers are excluded.";
-    $('ind-net-h').textContent = 'Net position by industry';
-    $('ind-net-note').textContent = 'Money received minus money paid. Positive industries are net receivers.';
-    const m = new Map();
-    rows.forEach((f) => { const k = industryOf(f.s) + '|' + industryOf(f.t); const o = m.get(k) || { a: industryOf(f.s), b: industryOf(f.t), v: 0, n: 0 }; o.v += f.v; o.n += f.n; m.set(k, o); });
-    const links = [...m.values()].sort((a, b) => b.v - a.v);
-    const top = links.slice(0, +$('ind-top').value);
-    const left = [...new Set(top.map((l) => l.a))], right = [...new Set(top.map((l) => l.b))];
-    plotSafe('p-sankey', [{ type: 'sankey', arrangement: 'snap', valueformat: ',.0f',
-      node: { label: left.map((n) => n + ' (pays)').concat(right.map((n) => n + ' (receives)')), color: left.concat(right).map(color), pad: 12, thickness: 16, line: { width: 0 },
-        hovertemplate: '%{label}: QAR %{value:,.0f}<extra></extra>' },
-      link: { source: top.map((l) => left.indexOf(l.a)), target: top.map((l) => left.length + right.indexOf(l.b)), value: top.map((l) => l.v),
-        color: top.map((l) => rgba(color(l.a), 0.35)), hovertemplate: '%{source.label} → %{target.label}: QAR %{value:,.0f}<extra></extra>' } }],
-    lay({ height: 560, margin: { l: 10, r: 10, t: 10, b: 10 } }), PCFG);
+  // GREs count as companies everywhere except here, where they get their own line
+  const industryOf = (id) => { const e = ENTS.get(id); return e.gre ? 'Government-related (GRE)' : e.industry || 'Other'; };
 
-    const all = [...new Set(links.flatMap((l) => [l.a, l.b]))].sort((a, b) => sum(links.filter((l) => l.a === b || l.b === b)) - sum(links.filter((l) => l.a === a || l.b === a)));
-    const z = all.map((a) => all.map((b) => (m.get(a + '|' + b)?.v) || 0));
-    plotSafe('p-ind-matrix', [{ type: 'heatmap', x: all, y: all, z: z.map((r) => r.map((v) => (v ? Math.log10(v) : null))), customdata: z,
-      colorscale: [[0, css('--accent-soft')], [1, css('--accent')]], showscale: false, hovertemplate: '%{y} → %{x}: QAR %{customdata:,.0f}<extra></extra>' }],
-    lay({ height: 480, margin: { l: 170, r: 10, t: 10, b: 140 }, xaxis: { tickangle: -45, automargin: true }, yaxis: { autorange: 'reversed', automargin: true } }), PCFG);
-    const netv = all.map((i) => sum(links.filter((l) => l.b === i)) - sum(links.filter((l) => l.a === i)));
-    const order = all.map((i, k) => [i, netv[k]]).sort((a, b) => a[1] - b[1]);
-    plotSafe('p-ind-net', [{ type: 'bar', orientation: 'h', y: order.map((o) => o[0]), x: order.map((o) => o[1]), marker: { color: order.map((o) => (o[1] >= 0 ? css('--in') : css('--out'))) }, hovertemplate: '%{y}: net QAR %{x:,.0f}<extra></extra>' }],
-      lay({ showlegend: false, height: 480, margin: { l: 170, r: 10, t: 10, b: 40 }, xaxis: ax({ tickformat: '~s' }) }), PCFG);
-    indRows = links.map((l) => ({ a: l.a, b: l.b, v: l.v, n: l.n, share: sum(links) ? l.v / sum(links) : 0 }));
-    paintInd();
-  }
-  function paintInd() { table($('t-ind'), [['a', 'From industry'], ['b', 'To industry'], ['v', 'Value', QAR], ['share', 'Share', (v) => (v * 100).toFixed(1) + '%'], ['n', 'Payments', (v) => N.format(v)]], indRows.slice(0, 60), indSort, paintInd); }
+  // ---------- counterparty types ----------
+  const CTYPES = ['Company', 'Company (GRE)', 'Government', 'Charity', 'Individual'];
+  const CTLABEL = { 'Company': 'Companies', 'Company (GRE)': 'Government-related companies (GRE)', 'Government': 'Government', 'Charity': 'Charities', 'Individual': 'Individuals' };
+  const ctypeOf = (id) => { const e = ENTS.get(id); return e.gre ? 'Company (GRE)' : e.type; };
+  let typeRows = [], typeSort = ['total', -1], tcRows = [], tcSort = ['total', -1];
+  function renderTypes() {
+    const c = S.center, cn = ENTS.get(c).name;
+    let rows = filtered().filter((f) => !f.x && (f.s === c || f.t === c));
+    if (S.dir === 'in') rows = rows.filter((f) => f.t === c); else if (S.dir === 'out') rows = rows.filter((f) => f.s === c);
+    const other = (f) => (f.s === c ? f.t : f.s);
+    const G = group(rows, (f) => ctypeOf(other(f)));
+    typeRows = CTYPES.filter((t) => G.has(t)).map((t) => { const r = G.get(t), inR = r.filter((f) => f.t === c), outR = r.filter((f) => f.s === c), cps = new Set(r.map(other));
+      return { type: t, name: CTLABEL[t], inn: sum(inR), out: sum(outR), nIn: sum(inR, (f) => f.n), nOut: sum(outR, (f) => f.n), n: sum(r, (f) => f.n), cps: cps.size, qib: [...cps].filter((u) => ENTS.get(u).qib).length, total: sum(r), net: sum(inR) - sum(outR) }; });
+    const all = sum(typeRows, (r) => r.total);
+    typeRows.forEach((r) => { r.share = all ? r.total / all : 0; });
+    const signed = (v) => (v < 0 ? '−' : '+') + QAR(Math.abs(v));
+    table($('t-types'), [['type', 'Counterparty type'], ['total', 'Total value', QAR], ['share', 'Share', (v) => Math.round(v * 100) + '%'], ['inn', 'Credit (received)', QAR], ['out', 'Debit (paid)', QAR], ['net', 'Net', signed], ['n', 'Payments', (v) => N.format(v)], ['cps', 'Counterparties', (v) => N.format(v)]],
+      typeRows, typeSort, renderTypes, (r) => r.type);
 
-  // ---------- overview ----------
-  function renderOver() {
-    const P = pairs(filtered().filter((f) => !f.x)).sort((a, b) => b.v - a.v).slice(0, +$('topn').value);
-    const tot = new Map(), oi = new Map(), oo = new Map(), on = new Map();
-    const add = (m, k, v) => m.set(k, (m.get(k) || 0) + v);
-    P.forEach((p) => { add(tot, p.s, p.v); add(tot, p.t, p.v); add(oo, p.s, p.v); add(oi, p.t, p.v); add(on, p.s, p.n); add(on, p.t, p.n); });
-    const vmax = Math.max(1, ...tot.values()), emax = P[0]?.v || 1;
-    const rank = new Map([...DATA.entities].sort((a, b) => b.pr - a.pr).map((e, i) => [e.id, i + 1]));
-    const els = [...tot.keys()].map((id) => { const e = ENTS.get(id); return { data: { id, name: e.name, qib: !!e.qib, lv: 1, color: qcol(e), shape: shapeOf(e.type), icon: iconUri(e.type), size: size(tot.get(id), vmax),
-        tip: [e.name, ['Type', e.type + (e.industry && e.industry !== 'Individuals' ? ' · ' + e.industry : '')], ['Bank', bankOfE(e)], ['Received (links shown)', QAR(oi.get(id) || 0)], ['Paid (links shown)', QAR(oo.get(id) || 0)], ['Payments', N.format(on.get(id) || 0)], ['Influence rank', `#${rank.get(id)} of ${DATA.entities.length}`]], label: tot.get(id) > vmax * 0.1 ? short(e.name) : '' } }; })
-      .concat(P.map((p) => ({ data: { id: p.s + '>' + p.t, source: p.s, target: p.t, color: css('--muted'), arrow: 'triangle', w: 1 + 8 * Math.sqrt(p.v / emax), tier: 1,
-        tip: [`${ENTS.get(p.s).name} → ${ENTS.get(p.t).name}`, ['Value', QAR(p.v)], ['Payments', N.format(p.n)], ['Average payment', avg(p.v, p.n)], ['Main route', RLABEL[p.route]]] } })));
-    mountCy('over', $('net-over'), els, { name: 'cose', animate: false, idealEdgeLength: 150, nodeRepulsion: 60000, gravity: 0.6, fit: true, padding: 30 }, (n) => { recenter(n.id()); show('ego'); });
-    const hubs = [...DATA.entities].sort((a, b) => b.pr - a.pr).slice(0, 15).reverse();
-    plotSafe('p-hubs', [{ type: 'bar', orientation: 'h', y: hubs.map((h) => short(h.name)), x: hubs.map((h) => h.pr), marker: { color: hubs.map(qcol) }, hovertemplate: '%{y}: %{x:.3f}<extra></extra>' }],
-      lay({ margin: { l: 200, r: 10, t: 10, b: 40 }, height: 400, showlegend: false }), PCFG);
+    // star network: the company in the middle, one node per counterparty type
+    if (!typeRows.some((r) => r.type === S.ctype)) S.ctype = (typeRows.slice().sort((a, b) => b.total - a.total)[0] || { type: 'Company' }).type;
+    const vmax = Math.max(1, ...typeRows.map((r) => r.total));
+    const ttip = (r) => [CTLABEL[r.type], [`Credit: ${short(cn)} received`, `${QAR(r.inn)} · ${PAY(r.nIn)}`], [`Debit: ${short(cn)} paid`, `${QAR(r.out)} · ${PAY(r.nOut)}`], ['Net', signed(r.net)], ['Share of value', Math.round(100 * r.share) + '%'], ['Counterparties', `${N.format(r.cps)} (${N.format(r.qib)} QIB customers)`]];
+    const ce = ENTS.get(c);
+    const els = [{ data: { id: 'centre', label: short(cn), color: qcol(ce), shape: 'ellipse', icon: iconUri(ce.type), size: 76, lv: 0, tip: [cn, ['Received', QAR(sum(typeRows, (r) => r.inn))], ['Paid', QAR(sum(typeRows, (r) => r.out))], ['Counterparties', N.format(sum(typeRows, (r) => r.cps))]] } }]
+      .concat(typeRows.map((r) => ({ data: { id: 't:' + r.type, label: CTLABEL[r.type], color: css('--muted'), shape: 'ellipse', icon: iconUri(r.type), size: 34 + 46 * Math.sqrt(r.total / vmax), sel: r.type === S.ctype, tip: ttip(r) } })))
+      .concat(typeRows.flatMap((r) => [
+        r.inn ? { data: { id: 'i' + r.type, source: 't:' + r.type, target: 'centre', color: css('--in'), arrow: 'triangle', w: 1 + 12 * Math.sqrt(r.inn / vmax), tier: 1, tip: [`${CTLABEL[r.type]} → ${short(cn)}`, ['Credit', QAR(r.inn)], ['Payments', N.format(r.nIn)], ['Average payment', avg(r.inn, r.nIn)]] } } : null,
+        r.out ? { data: { id: 'o' + r.type, source: 'centre', target: 't:' + r.type, color: css('--out'), arrow: 'triangle', w: 1 + 12 * Math.sqrt(r.out / vmax), tier: 1, tip: [`${short(cn)} → ${CTLABEL[r.type]}`, ['Debit', QAR(r.out)], ['Payments', N.format(r.nOut)], ['Average payment', avg(r.out, r.nOut)]] } } : null].filter(Boolean)));
+    mountCy('types', $('net-types'), els, { name: 'concentric', concentric: (n) => (n.id() === 'centre' ? 2 : 1), levelWidth: () => 1, minNodeSpacing: 60, fit: true, padding: 40, animate: false },
+      (n) => { if (n.id() !== 'centre') { S.ctype = n.id().slice(2); render(); } });
+    $('types-h').textContent = `${cn} and its counterparty types`;
+    $('types-note').textContent = `${cn} in the centre, with every counterparty of the same type added together. Violet lines (credit): money ${cn} received from that type. Orange lines (debit): money it paid. Thicker lines carry more money. Click a type to analyse it below.`;
+    $('types-all-h').textContent = `${cn} by counterparty type`;
+
+    // selected type
+    const opts = typeRows.map((r) => new Option(CTLABEL[r.type], r.type));
+    $('type-pick').replaceChildren(...opts); $('type-pick').value = S.ctype;
+    const r = G.get(S.ctype) || [], inR = r.filter((f) => f.t === c), outR = r.filter((f) => f.s === c), tr = typeRows.find((x) => x.type === S.ctype);
+    $('ty-in').textContent = QAR(sum(inR)); $('ty-out').textContent = QAR(sum(outR)); $('ty-net').textContent = signed(sum(inR) - sum(outR));
+    $('ty-cp').textContent = tr ? N.format(tr.cps) : '–'; $('ty-qib').textContent = tr ? N.format(tr.qib) : '–'; $('ty-n').textContent = tr ? N.format(tr.n) : '–';
+    const months = MONTHS.filter((m) => m >= S.from && m <= S.to), x = months.map(mLabel);
+    const byM = (rr) => months.map((m) => sum(rr.filter((f) => f.m === m)));
+    plotSafe('p-type-month', [
+      { type: 'bar', x, y: byM(inR), name: 'Credit (received)', marker: { color: css('--in') }, hovertemplate: '%{x}: QAR %{y:,.0f}<extra>Credit</extra>' },
+      { type: 'bar', x, y: byM(outR).map((v) => -v), customdata: byM(outR), name: 'Debit (paid)', marker: { color: css('--out') }, hovertemplate: '%{x}: QAR %{customdata:,.0f}<extra>Debit</extra>' },
+    ], lay({ barmode: 'relative', yaxis: ax({ tickformat: '~s' }) }), PCFG);
+    const purposes = [...new Set(r.map((f) => f.c))].sort((a, b) => sum(r.filter((f) => f.c === a)) - sum(r.filter((f) => f.c === b)));
+    plotSafe('p-type-purpose', [
+      { type: 'bar', orientation: 'h', y: purposes, x: purposes.map((p) => -sum(outR.filter((f) => f.c === p))), customdata: purposes.map((p) => sum(outR.filter((f) => f.c === p))), name: 'Debit (paid)', marker: { color: css('--out') }, hovertemplate: '%{y}: QAR %{customdata:,.0f}<extra>Debit</extra>' },
+      { type: 'bar', orientation: 'h', y: purposes, x: purposes.map((p) => sum(inR.filter((f) => f.c === p))), name: 'Credit (received)', marker: { color: css('--in') }, hovertemplate: '%{y}: QAR %{x:,.0f}<extra>Credit</extra>' },
+    ], lay({ barmode: 'relative', margin: { l: 200, r: 10, t: 10, b: 40 }, height: Math.max(260, 28 * purposes.length + 90), xaxis: ax({ tickformat: '~s' }) }), PCFG);
+    $('types-cp-h').textContent = `${CTLABEL[S.ctype]} that ${short(cn)} deals with`;
+    tcRows = [...group(r, other)].map(([id, rr]) => { const e = ENTS.get(id), i = rr.filter((f) => f.t === c), o = rr.filter((f) => f.s === c);
+      return { id, name: e.name, bank: e.qib ? 'QIB' : bankShort(e.bank), bankF: e.qib ? QIBN : e.bank, inn: sum(i), out: sum(o), total: sum(rr), n: sum(rr, (f) => f.n) }; });
+    paintTypeCp();
   }
+  function paintTypeCp() {
+    table($('t-type-cp'), [['name', 'Counterparty'], ['bank', 'Bank', null, 'bankF'], ['inn', 'Credit (received)', QAR], ['out', 'Debit (paid)', QAR], ['total', 'Total', QAR], ['n', 'Payments', (v) => N.format(v)]], tcRows, tcSort, paintTypeCp, (r) => r.id);
+  }
+  $('type-pick').addEventListener('change', () => { S.ctype = $('type-pick').value; render(); });
+  $('t-types').addEventListener('click', (ev) => { const tr = ev.target.closest('tr[data-key]'); if (tr) { S.ctype = tr.dataset.key; render(); $('type-pick').scrollIntoView({ behavior: 'smooth', block: 'start' }); } });
+  $('t-type-cp').addEventListener('click', (ev) => { const tr = ev.target.closest('tr[data-key]'); if (tr) { recenter(tr.dataset.key); show('ego'); } });
 
   // ---------- shared ----------
   const ax = (extra) => Object.assign({ gridcolor: css('--line'), zerolinecolor: css('--muted') }, extra);
@@ -1100,7 +1069,7 @@ const LOGOS = {"Qatar Islamic Bank": "data:image/png;base64,iVBORw0KGgoAAAANSUhE
   function recenter(id) { if (id === S.center) return; S.history.push(S.center); S.center = id; render(); }
   $('back').addEventListener('click', () => { if (S.history.length) { S.center = S.history.pop(); render(); } });
   $('fit').addEventListener('click', () => cys.ego && cys.ego.fit(undefined, 30));
-  const VIEWS = { brief: renderBrief, ego: renderEgo, self: renderSelf, banks: renderBanks, ind: renderInd, over: renderOver };
+  const VIEWS = { brief: renderBrief, ego: renderEgo, self: renderSelf, banks: renderBanks, types: renderTypes };
   function render() {
     $('company').value = S.center;
     try { VIEWS[S.view](); } catch (err) { console.error(err); }
@@ -1110,15 +1079,15 @@ const LOGOS = {"Qatar Islamic Bank": "data:image/png;base64,iVBORw0KGgoAAAANSUhE
     document.querySelectorAll('.tab').forEach((t) => t.setAttribute('aria-selected', String(t.dataset.view === v)));
     Object.keys(VIEWS).forEach((k) => { $('view-' + k).hidden = k !== v; });
     document.querySelectorAll('.ego-only').forEach((el) => { el.hidden = v !== 'ego'; });
-    document.querySelectorAll('.net-dir').forEach((el) => { el.hidden = !['ego', 'self'].includes(v); });
+    document.querySelectorAll('.net-dir').forEach((el) => { el.hidden = !['ego', 'self', 'types'].includes(v); });
     $('dir-lab').textContent = v === 'self' ? 'Money direction (vs QIB)' : 'Money direction';
-    $('scope').closest('.fld').hidden = !['banks', 'ind'].includes(v);
+    $('scope').closest('.fld').hidden = v !== 'banks';
     render();
   }
   document.querySelectorAll('.tab').forEach((t) => t.addEventListener('click', () => show(t.dataset.view)));
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change', render);
   new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
-  const start = { '#network': 'ego', '#self': 'self', '#banks': 'banks', '#industries': 'ind', '#overview': 'over' }[location.hash] || 'brief';
+  const start = { '#network': 'ego', '#self': 'self', '#banks': 'banks', '#types': 'types' }[location.hash] || 'brief';
   show(start);
 })();
 </script>
