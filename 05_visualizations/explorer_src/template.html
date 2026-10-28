@@ -120,12 +120,13 @@ tbody tr:hover td { background: var(--accent-soft); }
 .rec .tag { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
 .copy { font: inherit; font-size: 12px; justify-self: start; background: var(--panel); color: var(--accent); border: 1px solid var(--accent); border-radius: 6px; padding: 4px 10px; cursor: pointer; }
 .blogo { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
-.blogo img { height: 26px; width: auto; max-width: 120px; object-fit: contain; background: #fff; border-radius: 3px; padding: 1px 3px; box-shadow: 0 0 0 1px var(--line); }
-.chk .blogo img { height: 22px; max-width: 110px; }
+.blogo img { height: 28px; width: 84px; object-fit: contain; background: #fff; border-radius: 4px; box-shadow: 0 0 0 1px var(--line); }
+.chk .blogo img { height: 26px; width: 78px; }
 .shape { display: inline-block; width: 20px; text-align: center; }
 .ticon { width: 18px; height: 18px; vertical-align: -4px; flex: none; }
 td .ticon { margin-right: 5px; }
-.selrow .blogo img { height: 30px; max-width: 150px; }
+td:has(> .ticon) { white-space: nowrap; }
+.selrow .blogo img { height: 32px; width: 96px; }
 .cochips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .cochips button { font: inherit; font-size: 12px; background: var(--panel); color: var(--accent); border: 1px solid var(--accent); border-radius: 999px; padding: 3px 10px; cursor: pointer; }
 .topbar select#company { font-size: 16px; font-weight: 600; width: min(420px, 80vw); padding: 8px 10px; }
@@ -258,8 +259,8 @@ td .ticon { margin-right: 5px; }
           <div class="kpi"><span>Net leaving QIB</span><strong id="s-net">–</strong></div>
         </div>
         <div class="grid2">
-          <div class="card"><h2>Where the company keeps its other accounts</h2><p class="note">Lines link the company to each bank where it holds another account of its own. Thicker lines carry more money. Red: money mostly left QIB. Green: mostly came into QIB. Grey: between two QIB accounts.</p><div class="net small" id="net-self"></div></div>
-          <div class="card"><h2>By bank holding the other account</h2><p class="note">Own-account money leaving QIB (left), coming back or moved between two QIB accounts (right).</p><div class="plot" id="p-self-bank"></div></div>
+          <div class="card"><h2>Where the company keeps its other accounts</h2><p class="note">Lines link the company to each bank where it holds another account of its own. Thicker lines carry more money. Red: money mostly left QIB. Green: mostly came back into QIB. Transfers between two of the company's own QIB accounts are not counted.</p><div class="net small" id="net-self"></div></div>
+          <div class="card"><h2>By bank holding the other account</h2><p class="note">Own-account money leaving QIB (left) and coming back into QIB (right).</p><div class="plot" id="p-self-bank"></div></div>
         </div>
         <div class="grid2">
           <div class="card"><h2>Net own-account money leaving QIB, by month</h2><p class="note">Above zero: the company moved more of its own money out of QIB than back in.</p><div class="plot" id="p-self-month"></div></div>
@@ -320,7 +321,7 @@ td .ticon { margin-right: 5px; }
       </section>
     </div>
   </div>
-  <p class="foot">Icons: flaticon.com. Data: synthetic transactions loaded into Neo4j (Entity, Transaction, Bank and Month nodes, with PAID and OWN_ACCOUNT_AT links). A self transfer is a payment where the same company is on both sides. Amounts are in QAR.</p>
+  <p class="foot">Icons: flaticon.com. Data: synthetic transactions loaded into Neo4j (Entity, Transaction, Bank and Month nodes, with PAID and OWN_ACCOUNT_AT links). A self transfer is a payment between a company's QIB account and its own account at another bank. Amounts are in QAR.</p>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.30.2/cytoscape.min.js"></script>
@@ -358,7 +359,8 @@ const ICONS = __ICONS__;
 
   DATA.entities.forEach((e) => { if (e.type === 'Company (GRE)') { e.gre = true; e.type = 'Company'; } });
   const ENTS = new Map(DATA.entities.map((e) => [e.id, e]));
-  const FLOWS = DATA.flows.map((f) => ({ ...f, m: String(f.m) }));
+  // a self transfer only counts when one side is outside QIB; moves between two of a company's own QIB accounts are left out everywhere
+  const FLOWS = DATA.flows.filter((f) => !(f.x && f.r === 'ON_US')).map((f) => ({ ...f, m: String(f.m) }));
   const MONTHS = [...new Set(FLOWS.map((f) => f.m))].sort();
   const PURPOSES = [...new Set(FLOWS.map((f) => f.c))].sort();
   const BANKS = [...new Set(FLOWS.map((f) => f.b))].sort((a, b) => (a === QIBN ? -1 : b === QIBN ? 1 : sum(FLOWS.filter((f) => f.b === b)) < sum(FLOWS.filter((f) => f.b === a)) ? -1 : 1));
@@ -704,7 +706,7 @@ const ICONS = __ICONS__;
   const avg = (v, n) => (n ? QAR(v / n) : '–');
   const bankOfE = (e) => (e.qib ? 'QIB customer' : 'Banks with ' + bankShort(e.bank));
   // a bank node drawn as its logo on a white card, sized by value
-  const bankNode = (b, sz, color, extra) => { const lh = 20 + sz * 0.45; return { id: (extra && extra.id) || b, label: bankShort(b), bank: true, lv: 1, color, size: sz, ...(logoUri(b) ? { logo: logoUri(b), lh, lw: lh * 2.8 } : {}), ...extra }; };
+  const bankNode = (b, sz, color, extra) => { const lh = 20 + sz * 0.45; return { id: (extra && extra.id) || b, label: bankShort(b), bank: true, lv: 1, color, size: sz, ...(logoUri(b) ? { logo: logoUri(b), lh, lw: lh * 3 } : {}), ...extra }; };
 
   function renderEgo() {
     const { f1, nodes: all, P } = ego();
@@ -795,8 +797,8 @@ const ICONS = __ICONS__;
   let selfRows = [], selfSort = ['out', -1];
   function renderSelf() {
     // always one company: the one picked at the top or in this page's own selector
-    // money in = own money coming back into QIB, out = leaving QIB; transfers between two QIB accounts only under "Both"
-    const rows = FLOWS.filter((f) => f.x && pass(f) && f.s === S.center && (S.dir === 'both' || (S.dir === 'in' ? f.r === 'OTHER_TO_QIB' : f.r === 'QIB_TO_OTHER')));
+    // money in = own money coming back into QIB from another bank, out = leaving QIB for another bank
+    const rows = FLOWS.filter((f) => f.x && f.r !== 'ON_US' && pass(f) && f.s === S.center && (S.dir === 'both' || (S.dir === 'in' ? f.r === 'OTHER_TO_QIB' : f.r === 'QIB_TO_OTHER')));
     const outOf = (f) => f.r === 'QIB_TO_OTHER', into = (f) => f.r === 'OTHER_TO_QIB';
     const vOut = sum(rows.filter(outOf)), vIn = sum(rows.filter(into)), cos = new Set(rows.map((f) => f.s));
     $('s-val').textContent = QAR(sum(rows)); $('s-n').textContent = N.format(sum(rows, (f) => f.n)); $('s-co').textContent = N.format(new Set(rows.filter((f) => f.b !== QIBN).map((f) => f.b)).size);
@@ -808,22 +810,22 @@ const ICONS = __ICONS__;
     if (!ENTS.get(S.center).qib) call.textContent = `${nm} is not a QIB customer, so it has no self transfers in this data.`;
     else if (rows.length) {
       const st = document.createElement('strong'); st.textContent = `${nm} `; call.append(st,
-        `moved ${QAR(sum(rows))} between its own accounts: ${QAR(vOut)} out of QIB and ${QAR(vIn)} back in, a net ${vOut >= vIn ? 'outflow' : 'inflow'} of ${QAR(Math.abs(vOut - vIn))}` +
+        `moved ${QAR(sum(rows))} between its QIB account and its own accounts at other banks: ${QAR(vOut)} out of QIB and ${QAR(vIn)} back in, a net ${vOut >= vIn ? 'outflow' : 'inflow'} of ${QAR(Math.abs(vOut - vIn))}` +
         (byBankNet[0] && byBankNet[0][1] > 0 ? `. Most of the money leaving went to its account at ${bankShort(byBankNet[0][0])}.` : '.'));
     } else call.textContent = `${nm} has no self transfers in this period and with these filters.`;
 
     // company -> bank network
-    const pr = [...group(rows, (f) => f.s + '|' + f.b)].map(([k, r]) => ({ c: k.split('|')[0], b: k.split('|')[1], out: sum(r.filter(outOf)), inn: sum(r.filter(into)), on: sum(r.filter((f) => f.r === 'ON_US')), n: sum(r, (f) => f.n), months: new Set(r.map((f) => f.m)).size }));
-    const ptip = (title, ps) => [title, ['Out of QIB', QAR(sum(ps, (p) => p.out))], ['Back into QIB', QAR(sum(ps, (p) => p.inn))], ['Between QIB accounts', QAR(sum(ps, (p) => p.on))], ['Net leaving QIB', QAR(sum(ps, (p) => p.out - p.inn))], ['Transfers', N.format(sum(ps, (p) => p.n))]];
-    const tot = (p) => p.out + p.inn + p.on, emax = Math.max(1, ...pr.map(tot));
+    const pr = [...group(rows, (f) => f.s + '|' + f.b)].map(([k, r]) => ({ c: k.split('|')[0], b: k.split('|')[1], out: sum(r.filter(outOf)), inn: sum(r.filter(into)), n: sum(r, (f) => f.n), months: new Set(r.map((f) => f.m)).size }));
+    const ptip = (title, ps) => [title, ['Out of QIB', QAR(sum(ps, (p) => p.out))], ['Back into QIB', QAR(sum(ps, (p) => p.inn))], ['Net leaving QIB', QAR(sum(ps, (p) => p.out - p.inn))], ['Transfers', N.format(sum(ps, (p) => p.n))]];
+    const tot = (p) => p.out + p.inn, emax = Math.max(1, ...pr.map(tot));
     const coTot = new Map(); pr.forEach((p) => coTot.set(p.c, (coTot.get(p.c) || 0) + tot(p)));
     const bTot = new Map(); pr.forEach((p) => bTot.set(p.b, (bTot.get(p.b) || 0) + tot(p)));
     const cmax = Math.max(1, ...coTot.values()), bmax = Math.max(1, ...bTot.values());
     const els = [...coTot.keys()].map((id) => ({ data: { id, label: short(ENTS.get(id).name), tip: ptip(ENTS.get(id).name, pr.filter((p) => p.c === id)), color: qcol(ENTS.get(id)), shape: shapeOf(ENTS.get(id).type), icon: iconUri(ENTS.get(id)), size: size(coTot.get(id), cmax), qib: true, lv: 1 } }))
-      .concat([...bTot.keys()].map((b) => ({ data: bankNode(b, 24 + 40 * Math.sqrt(bTot.get(b) / bmax), b === QIBN ? css('--qibc') : css('--muted'), { id: 'bank:' + b, tip: ptip(b === QIBN ? 'Its other QIB account' : b, pr.filter((p) => p.b === b)) }) })))
+      .concat([...bTot.keys()].map((b) => ({ data: bankNode(b, 46, b === QIBN ? css('--qibc') : css('--muted'), { id: 'bank:' + b, tip: ptip(b === QIBN ? 'Its other QIB account' : b, pr.filter((p) => p.b === b)) }) })))
       .concat(pr.map((p) => ({ data: { id: p.c + '>' + p.b, source: p.c, target: 'bank:' + p.b, arrow: 'none', w: 1 + 9 * Math.sqrt(tot(p) / emax), tier: 1,
         tip: [...ptip(`${short(ENTS.get(p.c).name)} ↔ ${bankShort(p.b)}`, [p]), ['Months active', N.format(p.months)], ['Average transfer', avg(tot(p), p.n)]],
-        color: p.on ? css('--onus') : p.out >= p.inn ? css('--out') : css('--in') } })));
+        color: p.out >= p.inn ? css('--out') : css('--in') } })));
     mountCy('self', $('net-self'), els, { name: 'cose', animate: false, idealEdgeLength: 110, nodeRepulsion: 30000, gravity: 0.7, fit: true, padding: 24 },
       (n) => { if (!n.id().startsWith('bank:')) { recenter(n.id()); show('ego'); } });
 
@@ -839,25 +841,23 @@ const ICONS = __ICONS__;
     plotSafe('p-self-co', [
       { type: 'bar', orientation: 'h', y: top, x: top.map((c) => -per(c, outOf)), customdata: top.map((c) => per(c, outOf)), name: 'Out of QIB', marker: { color: css('--out') }, hovertemplate: '%{y}: QAR %{customdata:,.0f}<extra>Out of QIB</extra>' },
       { type: 'bar', orientation: 'h', y: top, x: top.map((c) => per(c, into)), name: 'Into QIB', marker: { color: css('--in') }, hovertemplate: '%{y}: QAR %{x:,.0f}<extra>Into QIB</extra>' },
-      { type: 'bar', orientation: 'h', y: top, x: top.map((c) => per(c, (f) => f.r === 'ON_US')), name: 'Between own QIB accounts', marker: { color: css('--onus') }, hovertemplate: '%{y}: QAR %{x:,.0f}<extra>Own QIB accounts</extra>' },
     ], lay({ barmode: 'relative', margin: { l: 190, r: 10, t: 10, b: 40 }, height: Math.max(300, 24 * top.length + 80), xaxis: ax({ tickformat: '~s' }) }), PCFG);
     const banks = [...bTot.keys()].sort((a, b) => bTot.get(a) - bTot.get(b));
-    const selfBankLbl = (b) => (b === QIBN ? 'QIB 2nd account' : bankShort(b));
+    const selfBankLbl = bankShort;
     const perB = (b, pred) => sum(rows.filter((f) => f.b === b && pred(f)));
     plotSafe('p-self-bank', [
       { type: 'bar', orientation: 'h', y: banks.map(selfBankLbl), x: banks.map((b) => -perB(b, outOf)), customdata: banks.map((b) => perB(b, outOf)), name: 'Out of QIB', marker: { color: css('--out') }, hovertemplate: '%{y}: QAR %{customdata:,.0f}<extra>Out of QIB</extra>' },
       { type: 'bar', orientation: 'h', y: banks.map(selfBankLbl), x: banks.map((b) => perB(b, into)), name: 'Into QIB', marker: { color: css('--in') }, hovertemplate: '%{y}: QAR %{x:,.0f}<extra>Into QIB</extra>' },
-      { type: 'bar', orientation: 'h', y: banks.map(selfBankLbl), x: banks.map((b) => perB(b, (f) => f.r === 'ON_US')), name: 'Between own QIB accounts', marker: { color: css('--onus') }, hovertemplate: '%{y}: QAR %{x:,.0f}<extra>Own QIB accounts</extra>' },
     ], lay(bankAxis('p-self-bank', banks, selfBankLbl, { barmode: 'relative', height: Math.max(300, 36 * banks.length + 80), xaxis: ax({ tickformat: '~s' }) })), PCFG);
     const months = MONTHS.filter((m) => m >= S.from && m <= S.to);
     const net = months.map((m) => sum(rows.filter((f) => f.m === m && outOf(f))) - sum(rows.filter((f) => f.m === m && into(f))));
     plotSafe('p-self-month', [{ type: 'bar', x: months.map(mLabel), y: net, marker: { color: net.map((v) => (v >= 0 ? css('--out') : css('--in'))) }, hovertemplate: '%{x}: net QAR %{y:,.0f}<extra></extra>' }],
       lay({ height: 280, showlegend: false, yaxis: ax({ tickformat: '~s' }) }), PCFG);
-    selfRows = pr.map((p) => ({ id: p.c, name: ENTS.get(p.c).name, b: p.b, bank: p.b === QIBN ? 'QIB (own accounts)' : bankShort(p.b), n: p.n, out: p.out, inn: p.inn, on: p.on, net: p.out - p.inn }));
+    selfRows = pr.map((p) => ({ id: p.c, name: ENTS.get(p.c).name, b: p.b, bank: bankShort(p.b), n: p.n, out: p.out, inn: p.inn, net: p.out - p.inn }));
     paintSelf();
   }
   function paintSelf() {
-    table($('t-self'), [['name', 'Company'], ['bank', 'Other account at', null, 'b'], ['n', 'Transfers', (v) => N.format(v)], ['out', 'Out of QIB', QAR], ['inn', 'Into QIB', QAR], ['on', 'Between QIB accounts', QAR], ['net', 'Net leaving QIB', (v) => (v < 0 ? '−' : '') + QAR(Math.abs(v))]],
+    table($('t-self'), [['name', 'Company'], ['bank', 'Other account at', null, 'b'], ['n', 'Transfers', (v) => N.format(v)], ['out', 'Out of QIB', QAR], ['inn', 'Into QIB', QAR], ['net', 'Net leaving QIB', (v) => (v < 0 ? '−' : '') + QAR(Math.abs(v))]],
       selfRows, selfSort, paintSelf, (r) => r.id);
   }
   $('t-self').addEventListener('click', (ev) => { const tr = ev.target.closest('tr[data-key]'); if (tr) { recenter(tr.dataset.key); show('ego'); } });
@@ -881,8 +881,8 @@ const ICONS = __ICONS__;
     const btip = (r) => [r.b === QIBN ? 'Qatar Islamic Bank' : r.b, ...(r.b === QIBN ? [['Within QIB', QAR(r.on)]] : [['QIB pays this bank', `${QAR(r.out)} · ${PAY(r.nOut)}`], ['QIB receives from it', `${QAR(r.inn)} · ${PAY(r.nIn)}`], ['Net to QIB', (r.inn >= r.out ? '+' : '−') + QAR(Math.abs(r.inn - r.out))]]),
       ['Share of value', Math.round(100 * r.share) + '%'], ['QIB customers involved', N.format(r.cust)], ['Counterparties there', N.format(r.cps)], ['Self transfers', QAR(r.self)]];
     const qr = bankRows.find((r) => r.b === QIBN);
-    const els = [{ data: bankNode(QIBN, 70, css('--qibc'), { lv: 0, tip: qr ? btip(qr) : ['Qatar Islamic Bank', ['Within QIB', '–']] }) }]
-      .concat(bankRows.filter((r) => r.b !== QIBN).map((r) => ({ data: bankNode(r.b, 26 + 44 * Math.sqrt(r.total / vmax), r.b === S.bank ? css('--ring') : css('--line'), { tip: btip(r) }) })))
+    const els = [{ data: bankNode(QIBN, 64, css('--qibc'), { lv: 0, tip: qr ? btip(qr) : ['Qatar Islamic Bank', ['Within QIB', '–']] }) }]
+      .concat(bankRows.filter((r) => r.b !== QIBN).map((r) => ({ data: bankNode(r.b, 50, r.b === S.bank ? css('--ring') : css('--line'), { tip: btip(r) }) })))
       .concat(bankRows.filter((r) => r.b !== QIBN).flatMap((r) => [
         r.out ? { data: { id: 'o' + r.b, source: QIBN, target: r.b, color: css('--out'), arrow: 'triangle', w: 1 + 12 * Math.sqrt(r.out / vmax), tier: 1, tip: [`QIB → ${bankShort(r.b)}`, ['Value', QAR(r.out)], ['Payments', N.format(r.nOut)], ['Average payment', avg(r.out, r.nOut)]] } } : null,
         r.inn ? { data: { id: 'i' + r.b, source: r.b, target: QIBN, color: css('--in'), arrow: 'triangle', w: 1 + 12 * Math.sqrt(r.inn / vmax), tier: 1, tip: [`${bankShort(r.b)} → QIB`, ['Value', QAR(r.inn)], ['Payments', N.format(r.nIn)], ['Average payment', avg(r.inn, r.nIn)]] } } : null].filter(Boolean)));
