@@ -7,18 +7,18 @@
 :root {
   --bg: #f6f4f2; --panel: #ffffff; --ink: #221a1d; --muted: #6b6166; --line: #e4dcdc; --accent: #8a1d3d; --accent-soft: #f3e3e8;
   --gre: #8a1d3d; --company: #d0708f; --gov: #2c7a55; --charity: #c79a1e; --indiv: #8d8f99;
-  --onus: #7a5cc4; --out: #e0672e; --in: #3866d1; --ring: #c79a1e; --qibc: #0075B0; --nonqib: #2e9b57;
+  --onus: #8c97a4; --out: #e0672e; --in: #7a5cc4; --ring: #c79a1e; --qibc: #0075B0; --nonqib: #2e9b57;
   --font-display: "Newsreader", Georgia, "Times New Roman", serif;
   --font-body: "Public Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   --bg: #17141a; --panel: #211d24; --ink: #efe9ec; --muted: #a79da3; --line: #3a3239; --accent: #e07a9b; --accent-soft: #3a2430;
   --gre: #c4466c; --company: #e597b0; --gov: #4fb487; --charity: #e2b84a; --indiv: #a3a6b0;
-  --onus: #a58cf0; --out: #f08a55; --in: #6f95ee; --ring: #e2b84a; --qibc: #4fb3e6; --nonqib: #4cc47a; color-scheme: dark; } }
+  --onus: #8f9aa6; --out: #f08a55; --in: #a58cf0; --ring: #e2b84a; --qibc: #4fb3e6; --nonqib: #4cc47a; color-scheme: dark; } }
 :root[data-theme="dark"] {
   --bg: #17141a; --panel: #211d24; --ink: #efe9ec; --muted: #a79da3; --line: #3a3239; --accent: #e07a9b; --accent-soft: #3a2430;
   --gre: #c4466c; --company: #e597b0; --gov: #4fb487; --charity: #e2b84a; --indiv: #a3a6b0;
-  --onus: #a58cf0; --out: #f08a55; --in: #6f95ee; --ring: #e2b84a; --qibc: #4fb3e6; --nonqib: #4cc47a; color-scheme: dark; }
+  --onus: #8f9aa6; --out: #f08a55; --in: #a58cf0; --ring: #e2b84a; --qibc: #4fb3e6; --nonqib: #4cc47a; color-scheme: dark; }
 body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 14px; }
 .wrap { max-width: 1500px; margin: 0 auto; padding-block: 18px 40px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 14px; }
 h1 { font-family: var(--font-display); font-weight: 500; font-size: clamp(26px, 3.2vw, 36px); margin: 0; text-wrap: balance; color: var(--accent); }
@@ -137,12 +137,12 @@ tbody tr:hover td { background: var(--accent-soft); }
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap">
 <style>
 :root { --brand-bar: #0075B0; --accent: #0075B0; --accent-soft: #e2f0f8; --ring: #DF7A00; --ink: #00111A;
-  --bg: #f4f7f9; --line: #dde5ea; --muted: #5c6b75; --gre: #00476b; --company: #5fa8d3; --out: #DF7A00; --in: #4f63d2; --onus: #7a5cc4;
+  --bg: #f4f7f9; --line: #dde5ea; --muted: #5c6b75; --gre: #00476b; --company: #5fa8d3; --out: #DF7A00; --in: #7a5cc4; --onus: #8c97a4;
   --font-display: "Open Sans", "Segoe UI", system-ui, sans-serif; --font-body: "Open Sans", "Segoe UI", system-ui, sans-serif; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --brand-bar: #0075B0; --accent: #4fb3e6; --accent-soft: #0d2a3a; --ring: #f29a2e;
-  --ink: #e8f1f6; --bg: #0b1820; --panel: #11222c; --line: #24394a; --muted: #93a8b6; --gre: #4fb3e6; --company: #8cc6e8; --out: #f29a2e; --in: #8a9bf0; --onus: #a58cf0; } }
+  --ink: #e8f1f6; --bg: #0b1820; --panel: #11222c; --line: #24394a; --muted: #93a8b6; --gre: #4fb3e6; --company: #8cc6e8; --out: #f29a2e; --in: #a58cf0; --onus: #8f9aa6; } }
 :root[data-theme="dark"] { --brand-bar: #0075B0; --accent: #4fb3e6; --accent-soft: #0d2a3a; --ring: #f29a2e;
-  --ink: #e8f1f6; --bg: #0b1820; --panel: #11222c; --line: #24394a; --muted: #93a8b6; --gre: #4fb3e6; --company: #8cc6e8; --out: #f29a2e; --in: #8a9bf0; --onus: #a58cf0; }
+  --ink: #e8f1f6; --bg: #0b1820; --panel: #11222c; --line: #24394a; --muted: #93a8b6; --gre: #4fb3e6; --company: #8cc6e8; --out: #f29a2e; --in: #a58cf0; --onus: #8f9aa6; }
 h1 { color: var(--ink); }
 #plainhead { display: none; }
 </style>
@@ -268,7 +268,7 @@ h1 { color: var(--ink); }
           <div class="kpi"><span>Net leaving QIB</span><strong id="s-net">–</strong></div>
         </div>
         <div class="grid2">
-          <div class="card"><h2>Where the company keeps its other accounts</h2><p class="note">Lines link the company to each bank where it holds another account of its own. Thicker lines carry more money. Orange: money mostly left QIB. Blue: mostly came in. Violet: between two QIB accounts.</p><div class="net small" id="net-self"></div></div>
+          <div class="card"><h2>Where the company keeps its other accounts</h2><p class="note">Lines link the company to each bank where it holds another account of its own. Thicker lines carry more money. Orange (debit): money mostly left QIB. Violet (credit): mostly came into QIB. Grey: between two QIB accounts.</p><div class="net small" id="net-self"></div></div>
           <div class="card"><h2>By bank holding the other account</h2><p class="note">Own-account money leaving QIB (left), coming back or moved between two QIB accounts (right).</p><div class="plot" id="p-self-bank"></div></div>
         </div>
         <div class="grid2">
@@ -328,7 +328,7 @@ h1 { color: var(--ink); }
       <section class="main" id="view-over" hidden>
         <div class="card">
           <h2>Largest relationships across all QIB customers</h2>
-          <p class="note">The biggest payer-to-payee relationships after the filters. Click a dot to open it in Company network.</p>
+          <p class="note">The biggest payer-to-payee relationships after the filters. Dots: blue = QIB customer, green = banks elsewhere. Arrows point from payer to payee. Click a dot to open it in Company network.</p>
           <div class="range" style="max-width:420px"><span>Links</span><input type="range" id="topn" min="50" max="600" step="50" value="150" aria-label="Links shown"><span id="topn-v">150</span></div>
           <div class="net" id="net-over"></div>
         </div>
@@ -458,7 +458,7 @@ const LOGOS = {"Qatar Islamic Bank": "data:image/png;base64,iVBORw0KGgoAAAANSUhE
       l.append(label); return l;
     }));
   };
-  checks($('routes'), ROUTES, S.routes, 'b');
+  checks($('routes'), ROUTES, S.routes);
   checks($('types'), TYPES.map(([t]) => [t, t]), S.types, null);
   $('types').querySelectorAll('label').forEach((l) => { const g = document.createElement('span'); g.className = 'shape'; g.textContent = SHAPES[l.querySelector('input').value][1]; l.insertBefore(g, l.lastChild); });
   checks($('banks'), BANKS.map((b) => [b, b === QIBN ? 'QIB (both sides)' : bankShort(b)]), S.banks, null);
@@ -470,7 +470,7 @@ const LOGOS = {"Qatar Islamic Bank": "data:image/png;base64,iVBORw0KGgoAAAANSUhE
   $('banks').addEventListener('change', (ev) => { const i = ev.target; if (i.type === 'checkbox') { i.checked ? S.banks.add(i.value) : S.banks.delete(i.value); } }, true);
   $('legend').replaceChildren(...[['--qibc', 'QIB customer'], ['--nonqib', 'Banks elsewhere (not a QIB customer)']].map(([c, t]) => { const s = document.createElement('span'); const i = document.createElement('i'); i.style.background = `var(${c})`; s.append(i, t); return s; }),
     ...TYPES.map(([t]) => { const s = document.createElement('span'); s.textContent = `${SHAPES[t][1]} ${t}`; return s; }),
-    ...ROUTES.map(([, l, c]) => { const s = document.createElement('span'); const b = document.createElement('b'); b.style.background = `var(${c})`; s.append(b, l); return s; }));
+    ...['--in', '--out'].map((c) => { const s = document.createElement('span'); const b = document.createElement('b'); b.style.background = `var(${c})`; const t = document.createElement('span'); t.className = 'lg-' + c.slice(2); s.append(b, t); return s; }));
   ['ind-gre', 'ind-indiv', 'ind-top'].forEach((id) => $(id).addEventListener('change', render));
   $('topn').addEventListener('input', () => { $('topn-v').textContent = $('topn').value; });
   $('topn').addEventListener('change', render);
@@ -763,6 +763,8 @@ const LOGOS = {"Qatar Islamic Bank": "data:image/png;base64,iVBORw0KGgoAAAANSUhE
     const { f1, nodes, P } = ego();
     const c = S.center, ce = ENTS.get(c);
     $('net-title').textContent = `${ce.name}: counterparty network`;
+    document.querySelector('#legend .lg-in').textContent = `Credit: money into ${short(ce.name)}`;
+    document.querySelector('#legend .lg-out').textContent = `Debit: money out of ${short(ce.name)}`;
     const vmax = Math.max(1, ...nodes.map((n) => n.vin + n.vout)), emax = Math.max(1, ...P.map((p) => p.v));
     const lv = new Map(nodes.map((n) => [n.id, n.lv]));
     const els = nodes.map((n) => ({ data: { id: n.id, name: n.name, type: n.type, bankName: n.bank, qib: !!n.qib, lv: n.lv, vin: n.vin, vout: n.vout,
@@ -772,8 +774,8 @@ const LOGOS = {"Qatar Islamic Bank": "data:image/png;base64,iVBORw0KGgoAAAANSUhE
           ...(n.lv === 1 ? [[`Paid to ${short(ce.name)}`, toC ? `${QAR(toC.v)} · ${PAY(toC.n)}` : '–'], [`Received from ${short(ce.name)}`, fromC ? `${QAR(fromC.v)} · ${PAY(fromC.n)}` : '–']] : []),
           ['Money in (in view)', `${QAR(n.vin)} · ${PAY(n.nin)}`], ['Money out (in view)', `${QAR(n.vout)} · ${PAY(n.nout)}`]]; })(),
       color: qcol(n), shape: shapeOf(n.type), size: size(n.vin + n.vout, vmax) * (n.lv === 0 ? 1.4 : 1), label: n.lv < 2 || (n.vin + n.vout) > vmax * 0.03 ? short(n.name) : '' } }));
-    P.filter((p) => lv.has(p.s) && lv.has(p.t)).forEach((p) => els.push({ data: { id: p.s + '>' + p.t, source: p.s, target: p.t, color: rcol(p.route), arrow: 'triangle', w: 1 + 9 * Math.sqrt(p.v / emax), tier: (p.s === c || p.t === c) ? 1 : 2, v: p.v, n: p.n, route: p.route,
-      tip: [`${ENTS.get(p.s).name} → ${ENTS.get(p.t).name}`, ['Value', QAR(p.v)], ['Payments', N.format(p.n)], ['Average payment', avg(p.v, p.n)], ['Main route', RLABEL[p.route]],
+    P.filter((p) => lv.has(p.s) && lv.has(p.t)).forEach((p) => els.push({ data: { id: p.s + '>' + p.t, source: p.s, target: p.t, color: css(p.t === c ? '--in' : '--out'), arrow: 'triangle', w: 1 + 9 * Math.sqrt(p.v / emax), tier: (p.s === c || p.t === c) ? 1 : 2, v: p.v, n: p.n, route: p.route,
+      tip: [`${ENTS.get(p.s).name} → ${ENTS.get(p.t).name}`, [p.t === c ? `Credit to ${short(ce.name)}` : `Debit from ${short(ce.name)}`, QAR(p.v)], ['Payments', N.format(p.n)], ['Average payment', avg(p.v, p.n)], ['Main route', RLABEL[p.route]],
         ...Object.entries(p.by).filter(([r]) => r !== p.route).map(([r, v]) => [RLABEL[r], QAR(v)])] } }));
     const pos = ringPos(nodes);
     const cy = mountCy('ego', $('net'), els, S.layout === 'rings' ? { name: 'preset', positions: (n) => pos[n.id()] || { x: 0, y: 0 }, fit: true, padding: 30 }
@@ -939,7 +941,7 @@ const LOGOS = {"Qatar Islamic Bank": "data:image/png;base64,iVBORw0KGgoAAAANSUhE
     $('bank-logo').replaceChildren(bankCell(S.bank, ''));
     const co = S.scope === 'co', cn = ENTS.get(S.center).name;
     $('banks-h').textContent = co ? `Banks on the other side of ${cn}'s payments` : 'QIB and the other Qatar banks';
-    $('banks-note').textContent = co ? `QIB in the centre. Each bank's line shows money ${cn} paid to (orange) or received from (blue) accounts at that bank, self transfers included. Switch "Analyse" to All QIB customers for the whole bank. Click a bank to analyse it below.`
+    $('banks-note').textContent = co ? `QIB in the centre. Each bank's line shows money ${cn} paid to (orange, debit) or received from (violet, credit) accounts at that bank, self transfers included. Switch "Analyse" to All QIB customers for the whole bank. Click a bank to analyse it below.`
       : "QIB in the centre. Each bank's line width shows the money exchanged with QIB customers (self transfers included). Click a bank to analyse it below.";
     $('banks-all-h').textContent = co ? `Banks ${cn} deals with` : 'All banks';
     const r = rows.filter((f) => f.b === S.bank);
@@ -1052,7 +1054,7 @@ const LOGOS = {"Qatar Islamic Bank": "data:image/png;base64,iVBORw0KGgoAAAANSUhE
     const rank = new Map([...DATA.entities].sort((a, b) => b.pr - a.pr).map((e, i) => [e.id, i + 1]));
     const els = [...tot.keys()].map((id) => { const e = ENTS.get(id); return { data: { id, name: e.name, qib: !!e.qib, lv: 1, color: qcol(e), shape: shapeOf(e.type), size: size(tot.get(id), vmax),
         tip: [e.name, ['Type', e.type + (e.industry && e.industry !== 'Individuals' ? ' · ' + e.industry : '')], ['Bank', bankOfE(e)], ['Received (links shown)', QAR(oi.get(id) || 0)], ['Paid (links shown)', QAR(oo.get(id) || 0)], ['Payments', N.format(on.get(id) || 0)], ['Influence rank', `#${rank.get(id)} of ${DATA.entities.length}`]], label: tot.get(id) > vmax * 0.1 ? short(e.name) : '' } }; })
-      .concat(P.map((p) => ({ data: { id: p.s + '>' + p.t, source: p.s, target: p.t, color: rcol(p.route), arrow: 'triangle', w: 1 + 8 * Math.sqrt(p.v / emax), tier: 1,
+      .concat(P.map((p) => ({ data: { id: p.s + '>' + p.t, source: p.s, target: p.t, color: css('--muted'), arrow: 'triangle', w: 1 + 8 * Math.sqrt(p.v / emax), tier: 1,
         tip: [`${ENTS.get(p.s).name} → ${ENTS.get(p.t).name}`, ['Value', QAR(p.v)], ['Payments', N.format(p.n)], ['Average payment', avg(p.v, p.n)], ['Main route', RLABEL[p.route]]] } })));
     mountCy('over', $('net-over'), els, { name: 'cose', animate: false, idealEdgeLength: 150, nodeRepulsion: 60000, gravity: 0.6, fit: true, padding: 30 }, (n) => { recenter(n.id()); show('ego'); });
     const hubs = [...DATA.entities].sort((a, b) => b.pr - a.pr).slice(0, 15).reverse();
