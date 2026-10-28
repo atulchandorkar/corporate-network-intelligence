@@ -321,7 +321,7 @@ td .ticon { margin-right: 5px; }
       </section>
     </div>
   </div>
-  <p class="foot">Icons: Twemoji (CC-BY 4.0). Data: synthetic transactions loaded into Neo4j (Entity, Transaction, Bank and Month nodes, with PAID and OWN_ACCOUNT_AT links). A self transfer is a payment where the same company is on both sides. Amounts are in QAR.</p>
+  <p class="foot">Icons: flaticon.com. Data: synthetic transactions loaded into Neo4j (Entity, Transaction, Bank and Month nodes, with PAID and OWN_ACCOUNT_AT links). A self transfer is a payment where the same company is on both sides. Amounts are in QAR.</p>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.30.2/cytoscape.min.js"></script>
@@ -339,7 +339,7 @@ const ICONS = __ICONS__;
   const TYPES = [['Company', '--company'], ['Government', '--gov'], ['Charity', '--charity'], ['Individual', '--indiv']];
   const tcol = (t) => css((TYPES.find((x) => x[0] === t) || [0, '--indiv'])[1]);
   const qcol = (e) => css(e.qib ? '--qibc' : '--nonqib');
-  // one colour icon per counterparty type (Twemoji, embedded by build.py); GREs get their own icon
+  // one icon per counterparty type (from flaticon.com, embedded by build.py); GREs get their own icon
   const iconKey = (t) => (t && typeof t === 'object' ? (t.gre ? 'Company (GRE)' : t.type) : t);
   const iconUri = (t) => ICONS[iconKey(t)] || ICONS.Company;
   const iconEl = (t) => { const i = document.createElement('img'); i.src = iconUri(t); i.className = 'ticon'; i.alt = ''; return i; };
