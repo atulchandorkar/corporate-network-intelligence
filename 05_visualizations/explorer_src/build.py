@@ -44,7 +44,9 @@ brand_css = f"""<style>
 h1 {{ color: var(--ink); }}
 #plainhead {{ display: none; }}
 </style>"""
-LIBS = {'cytoscape': os.environ.get('CYTOSCAPE_JS') or str(VENDOR / 'cytoscape.min.js'), 'plotly': os.environ.get('PLOTLY_JS') or str(VENDOR / 'plotly.min.js')}
+# the emailed package ships the libraries as .js.txt, because mail filters such as Gmail block .js attachments
+vendored = lambda name: next((str(VENDOR / f) for f in (name, name + '.txt') if (VENDOR / f).exists()), '')
+LIBS = {'cytoscape': os.environ.get('CYTOSCAPE_JS') or vendored('cytoscape.min.js'), 'plotly': os.environ.get('PLOTLY_JS') or vendored('plotly.min.js')}
 def inline(h):
     for k, path in LIBS.items():
         if path and Path(path).exists():
